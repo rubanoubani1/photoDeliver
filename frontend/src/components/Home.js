@@ -1,6 +1,7 @@
 import NavigationBar from "./NavigationBar";
 import SearchBar from "./SearchBar";
 import Picture from "./Picture";
+import Footer from "./Footer";
 
 const Home = () =>{
     return(
@@ -20,7 +21,9 @@ const Home = () =>{
                 <Picture />
                 <Picture />
                 <Picture />
+                <Picture />
             </div>
+            <Footer/>
         </div>
     )
 }

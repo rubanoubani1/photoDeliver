@@ -11,18 +11,21 @@ const Picture = () => {
     return(
         <div style={{width:"500px", margin:"20px"}}>
             <h3  style={{margin:"5px"}}>{picture.username}<br/>
-            <span style={{fontStyle:"normal"}}>{picture.date}</span></h3>
+            <span style={{fontWeight:"normal"}}>{picture.date}</span></h3>
             <div style={{display:"flex",justifyContent:"center"}}>
                 <img src={picture.url} alt={picture.alt} style={{margin:"10px",width:"480px",height:"400px"}}/>
             </div>
             <div style={{margin:"10px",display:"flex",justifyContent:"space-between"}}>
-                <div>{picture.title}</div>
+                <div style={{fontWeight:"bold"}}>{picture.title}</div>
                 <div>
                     <button>Delete picture</button>
                     <button>Save picture</button>
                 </div>
             </div>
-            <a style={{margin:"10px"}}href="/">View all comments...</a>
+            <div style={{margin:"10px"}}>
+                <p>This is first comment</p>
+                <a href="#">View all comments...</a>
+            </div>
         </div>
     )
 
