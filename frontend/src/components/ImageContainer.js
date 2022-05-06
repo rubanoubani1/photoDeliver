@@ -1,4 +1,4 @@
-const Picture = () => {
+const ImageContainer = (props) => {
    
     const picture = {
         username: "JohnDoe@gmail.com",
@@ -31,4 +31,4 @@ const Picture = () => {
 
 }
 
-export default Picture;
+export default ImageContainer;
