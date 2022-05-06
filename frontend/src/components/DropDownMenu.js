@@ -7,10 +7,10 @@ const DropDownMenu = () => {
     <div className="dropdown">
         <button>User@user.com</button>
         <div className='dropdown-menu'>
-            <Link to="">Settings</Link>
-            <Link to="">Home</Link>
-            <Link to="">My posts</Link>
-            <Link to="">Saved pictures</Link>
+            <Link to="/settings">Settings</Link>
+            <Link to="/">Home</Link>
+            <Link to="/posts">My posts</Link>
+            <Link to="/saved">Saved pictures</Link>
             <Link to="">Logout</Link>
         </div>
     </div>
