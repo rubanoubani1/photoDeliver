@@ -1,8 +1,9 @@
+import DropDownMenu from "./DropDownMenu";
 const NavigationBar = () => {
     return(
         <nav style={{display:"flex", backgroundColor:"teal",justifyContent:"space-between"}}>
-            <div style={{fontSize:"40px",backgroundColor:"darkblue", height:"50pz",width:"50px"}}>pD</div>
-            <button>User@user.com</button>
+            <img src={require("../pdlogo.png")} alt={"logo"} style={{width:"80px",height:"80px"}}/>
+            <DropDownMenu/>
         </nav>
     )
 }

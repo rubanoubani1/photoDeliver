@@ -1,6 +1,6 @@
 import NavigationBar from "./NavigationBar";
 import SearchBar from "./SearchBar";
-import Picture from "./Picture";
+import ImageList from "./ImageList";
 import Footer from "./Footer";
 
 const Home = () =>{
@@ -8,21 +8,7 @@ const Home = () =>{
         <div style={{backgroundColor:"grey"}}>
             <NavigationBar />
             <SearchBar />
-            <div style={{display:"flex",flexWrap:"wrap"}}>
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-                <Picture />
-            </div>
+            <ImageList />
             <Footer/>
         </div>
     )
