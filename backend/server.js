@@ -6,7 +6,115 @@ app.use(express.json());
 
 //DATABASE
 
-const database = [];
+const database = [
+	{
+		owner: {
+			firstname: "John",
+			lastname: "Doe",
+			email: "JohnDoe@gmail.com",
+			profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+		},
+		url: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg",
+		id: 102,
+		alt: "dog",
+		title: "Random dog picture",
+		date: "13 April 2022",
+		comments: [
+			{
+				commenter: {
+					firstname: "Jane",
+					lastname: "Doe",
+					email: "jane.doe@gmail.com",
+					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+				},
+				text: "such a cute dog!",
+				date: "13 April 2022"
+			}
+		],
+		bookmarked: "true"
+	},
+	{
+		owner: {
+			firstname: "John",
+			lastname: "Doe",
+			email: "JohnDoe@gmail.com",
+			profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+		},
+		url: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg",
+		id: 103,
+		alt: "dog",
+		title: "Random dog picture 2",
+		date: "14 April 2022",
+		comments: [],
+		bookmarked: "false"
+	},
+	{
+		owner: {
+			firstname: "John",
+			lastname: "Doe",
+			email: "JohnDoe@gmail.com",
+			profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+		},
+		url: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg",
+		id: 104,
+		alt: "dog",
+		title: "Random dog picture 3",
+		date: "15 April 2022",
+		comments: [
+			{
+				commenter: {
+					firstname: "Jane",
+					lastname: "Doe",
+					email: "jane.doe@gmail.com",
+					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+				},
+				text: "that's the third time you've posted that picture",
+				date: "15 April 2022"
+			},
+			{
+				commenter: {
+					firstname: "John",
+					lastname: "Doe",
+					email: "JohnDoe@gmail.com",
+					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+				},
+				text: "It's the only one I have...",
+				date: "15 April 2022"
+			},
+			{
+				commenter: {
+					firstname: "Jane",
+					lastname: "Doe",
+					email: "jane.doe@gmail.com",
+					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+				},
+				text: "can't you take new photos?",
+				date: "15 April 2022"
+			},
+			{
+				commenter: {
+					firstname: "John",
+					lastname: "Doe",
+					email: "JohnDoe@gmail.com",
+					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+				},
+				text: "My house burned and everything I own was destroyed so the only picture I have left is this one I had as my profile picture. Oh, poor Doge the third... If only I hadn't left the candles burning again while going to work.",
+				date: "15 April 2022"
+			},
+			{
+				commenter: {
+					firstname: "Jane",
+					lastname: "Doe",
+					email: "jane.doe@gmail.com",
+					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+				},
+				text: "wow that got dark fast",
+				date: "15 April 2022"
+			}
+		],
+		bookmarked: "false"
+	}
+];
 const userdatabase =[];
 let testuser = {
 	email:'user@user.com',
