@@ -1,19 +1,19 @@
-.dropdown {
+.pd-dropdown {
     float: left;
     overflow: hidden;
   }
   
   
-  .dropdown-menu {
+  .pd-dropdown-menu {
     display: none;
     position: absolute;
     background-color: grey;
     min-width: 100px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
-    
+    border-radius: 5px;
   }
-  .dropdown-menu a{
+  .pd-dropdown-menu a{
     float: none;
     color: black;
     padding: 12px 16px;
@@ -22,9 +22,10 @@
     text-align: left;
   }
   
-  .dropdown:hover .dropdown-menu{
+  .pd-dropdown:hover .pd-dropdown-menu{
       display:block;
   }
-  .dropdown-menu a:hover {
+  .pd-dropdown-menu a:hover {
+    border-radius: 5px;
     background-color: darkgrey;
   }
