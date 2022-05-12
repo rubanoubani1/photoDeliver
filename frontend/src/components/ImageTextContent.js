@@ -8,7 +8,7 @@ const ImageTextContent = (props) => {
                 <div style={{fontWeight:"bold"}}>{props.title}</div>
                 <ImageControlButtons />
             </div>
-            <ExpandableCommentList />
+            <ExpandableCommentList comments={props.comments}/>
         </div>
     );
 }

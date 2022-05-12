@@ -7,10 +7,17 @@ const ExpandableCommentList = (props) => {
 
     // if user has logged in, should probably have a form for sending a comment
 
-    // the view all comments can be styled to look like a link but it should be a button
+    // the view all comments can be styled to look like a link but it propbably should be a button
+
+    let commentComponents = props.comments.map((item)=>{
+        return <Comment key={item.id} user={item.user} comment={item} />
+    })
+    
+
     return(
         <div style={{ margin: "10px" }}>
-            <Comment />
+            <button>add comment</button>
+            {commentComponents}
             <button>View all comments...</button>
         </div>
     );
