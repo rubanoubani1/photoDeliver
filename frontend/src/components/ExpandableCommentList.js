@@ -22,7 +22,7 @@ const ExpandableCommentList = (props) => {
     };
 
     let commentComponents = props.comments.map((item)=>{
-        return <Comment key={item.id} user={item.user} comment={item} />
+        return <Comment key={item.id} user={item.user} comment={item} user_id={props.user_id} owner_id={props.owner_id}/>
     })
 
     let viewAllButton = <button onClick={() => setDisplayCount(commentComponents.length)}>View all comments...</button>

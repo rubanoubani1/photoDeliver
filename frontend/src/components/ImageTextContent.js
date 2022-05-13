@@ -6,9 +6,9 @@ const ImageTextContent = (props) => {
         <div>
             <div style={{margin:"10px",display:"flex",justifyContent:"space-between"}}>
                 <div style={{fontWeight:"bold"}}>{props.title}</div>
-                <ImageControlButtons />
+                <ImageControlButtons user_id={props.user_id} owner_id={props.owner_id}/>
             </div>
-            <ExpandableCommentList comments={props.comments}/>
+            <ExpandableCommentList comments={props.comments} user_id={props.user_id} owner_id={props.owner_id}/>
         </div>
     );
 }

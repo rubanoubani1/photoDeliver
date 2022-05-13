@@ -129,7 +129,7 @@ const ImageList = (props) => {
     ];
     
     let imageContainerList = list.map((item)=>{
-        return <ImageContainer key={item.id} picture={item} />
+        return <ImageContainer key={item.id} picture={item} user_id={props.user_id}/>
     })
 
     return (

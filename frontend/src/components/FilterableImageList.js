@@ -10,7 +10,7 @@ const FilterableImageList = (props) => {
     return (
         <div>
             <SearchBar />
-            <ImageList list={state.filteredList} />
+            <ImageList list={state.filteredList} user_id={props.user_id} />
         </div>
     );
 }
