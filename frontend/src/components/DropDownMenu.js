@@ -5,7 +5,7 @@ const DropDownMenu = () => {
 
     return(
     <div className="pd-dropdown">
-        <button className="btn btn-primary dropdown-toggle">User@user.com</button>
+        <button className="btn btn-primary dropdown-toggle" style= {{backgroundColor:"#3A808A"}}>User@user.com</button>
         <div className='pd-dropdown-menu'>
             <Link to="/settings">Settings</Link>
             <Link className="dropdown-item" to="/">Home</Link>

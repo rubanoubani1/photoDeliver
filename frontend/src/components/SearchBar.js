@@ -12,7 +12,7 @@ const SearchBar = (props) => {
     //<label htmlFor="dateto" className="form-label">To: </label>
 
     return(
-        <form className="mb-3" style={{ backgroundColor: "lightblue", height: "60px", width: "600px"}}>
+        <form className="mb-3" style={{ backgroundColor: "#8F715A", height: "60px", width: "600px"}}>
             <div style={{display:"flex"}}>
                 <input
                     type="date"

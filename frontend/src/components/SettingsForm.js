@@ -1,4 +1,5 @@
 const SettingsForm = () => {
+
     const onSubmit = () => {
 
     }
@@ -58,15 +59,16 @@ const SettingsForm = () => {
                 name="birthday"
                 className="form-control"
                 onChange={onChange}
-                //</form>value=""
                 ></input>
+            <img src={require("../user_icon.png")} alt="user_icon" style={{width:"64px",height:"64px"}}/>
+            <input type="file" name="user_icon" />
             <br />
             <input type="submit"
                 className="btn btn-primary"
-                value="Change settings"></input>
+                value="Change settings"
+                style={{backgroundColor: "#3A808A"}} ></input>
+           
         </form>
     );
 } 
-
-}
 export default SettingsForm;
