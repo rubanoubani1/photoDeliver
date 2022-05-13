@@ -1,4 +1,5 @@
 const express = require("express");
+const apiroutes = require("./routes/apiroutes");
 
 const app = express();
 
@@ -142,11 +143,6 @@ let id = 100;
 //HELPERS
 const port = process.env.port || 3001;
 
-//REST API
-
-app.get("/api/pictures",function(req,res) {
-    return res.status(200).json(database);
-})
 
 
 //Login
@@ -177,6 +173,7 @@ app.post("/api/login",function(req,res) {
 
 });
 
+app.use("/api",apiroutes);
 
 app.listen(port);
 

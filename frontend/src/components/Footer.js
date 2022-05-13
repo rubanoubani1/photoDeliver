@@ -2,7 +2,7 @@ const Footer = () => {
 
     return (
         <footer style={{
-            backgroundColor: "lightblue",
+            backgroundColor: "#DBBAA0",
             display: "flex",
             justifyContent: "center",
             position: "fixed",
