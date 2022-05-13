@@ -1,5 +1,6 @@
 import Comment from "./Comment";
 import { useState } from "react";
+import CommentForm from "./CommentForm";
 
 const ExpandableCommentList = (props) => {
     // can be closed, showing only one comment and number of comments and a button to view all comments if more than one
@@ -14,21 +15,27 @@ const ExpandableCommentList = (props) => {
         displayedCommentsCount: 1
     });
 
+    const setDisplayCount = (num) => {
+        setState({
+            displayedCommentsCount: num
+        });
+    };
+
     let commentComponents = props.comments.map((item)=>{
         return <Comment key={item.id} user={item.user} comment={item} />
     })
 
-    let viewAllButton = <button>View all comments...</button>
+    let viewAllButton = <button onClick={() => setDisplayCount(commentComponents.length)}>View all comments...</button>
     if (commentComponents.length <= 1){
         viewAllButton = <span></span> //remove the button if no more comments to show
     } else if (commentComponents.length <= state.displayedCommentsCount){
-        viewAllButton = <button>Show less comments</button>
+        viewAllButton = <button onClick={()=>setDisplayCount(1)}>Show less comments</button>
     }
 
 
     return(
         <div style={{ margin: "10px" }}>
-            <button>add comment</button>
+            <CommentForm addComment={props.addComment}/>
             {commentComponents.slice(0, state.displayedCommentsCount)}
             {viewAllButton}
         </div>
