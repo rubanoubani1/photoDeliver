@@ -22,7 +22,13 @@ const ExpandableCommentList = (props) => {
     };
 
     let commentComponents = props.comments.map((item)=>{
-        return <Comment key={item.id} user={item.user} comment={item} user_id={props.user_id} owner_id={props.owner_id}/>
+        return <Comment 
+            key={item.id} 
+            user={item.user} 
+            comment={item} 
+            user_id={props.user_id} 
+            owner_id={props.owner_id}
+            deleteComment={() => props.deleteComment(item.id)}/>
     })
 
     let viewAllButton = <button onClick={() => setDisplayCount(commentComponents.length)}>View all comments...</button>
@@ -32,10 +38,15 @@ const ExpandableCommentList = (props) => {
         viewAllButton = <button onClick={()=>setDisplayCount(1)}>Show less comments</button>
     }
 
+    let commentForm = [];
+    if(props.user_id >0){
+        commentForm.push(<CommentForm key="commentForm" addComment={props.addComment} image_id={props.image_id} />);
+    }
+
 
     return(
         <div style={{ margin: "10px" }}>
-            <CommentForm addComment={props.addComment}/>
+            {commentForm}
             {commentComponents.slice(0, state.displayedCommentsCount)}
             {viewAllButton}
         </div>

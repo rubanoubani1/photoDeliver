@@ -20,7 +20,7 @@ const CommentForm = (props) => {
         let item = {
             ...state
         }
-        props.addComment(item);
+        props.addComment(props.image_id, item);
         setState({
             comment: ""
         });

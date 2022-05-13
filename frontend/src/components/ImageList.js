@@ -31,7 +31,7 @@ const ImageList = (props) => {
                     date: "13 April 2022"
                 }
             ],
-            bookmarked: "true"
+            bookmarked: true
         },
         {
             owner: {
@@ -47,7 +47,7 @@ const ImageList = (props) => {
             title: "Random dog picture 2",
             date: "14 April 2022",
             comments: [],
-            bookmarked: "false"
+            bookmarked: false
         },
         {
             owner: {
@@ -124,12 +124,12 @@ const ImageList = (props) => {
                     date: "15 April 2022"
                 }
             ],
-            bookmarked: "false"
+            bookmarked: false
         }
     ];
     
     let imageContainerList = list.map((item)=>{
-        return <ImageContainer key={item.id} picture={item} user_id={props.user_id}/>
+        return <ImageContainer key={item.id} picture={item} user_id={props.user_id} funcs={props.funcs}/>
     })
 
     return (

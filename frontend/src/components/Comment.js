@@ -1,4 +1,3 @@
-import CommentControlButton from "./CommentControlButton";
 import ProfileImage from "./ProfileImage";
 
 const Comment = (props) => {
