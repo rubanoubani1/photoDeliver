@@ -27,11 +27,13 @@ const CommentForm = (props) => {
     }
 
     return (
-        <form onSubmit={onSubmit} className="mb-3" style={{display:"flex"}}>
-            <input
+        <form onSubmit={onSubmit} className="mb-3" style={{display:"flex"}} id={"commentform-"+props.image_id}>
+            <textarea
                 type="text"
+                form={"commentform-" + props.image_id}
                 name="comment"
-                id="commentfield"
+                rows="1"
+                id={"commentfield-" + props.image_id}
                 className="form-control"
                 onChange={onChange}
                 placeholder="Write a comment here"
