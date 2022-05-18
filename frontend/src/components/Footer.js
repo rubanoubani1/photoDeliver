@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const Footer = () => {
 
     return (
@@ -9,7 +11,7 @@ const Footer = () => {
             bottom: 0,
             width: "100%"
         }}>
-            <button style={{ margin: "10px" }}>Add new photo</button>
+            <Link to="add" style={{ margin: "10px" }} className="btn btn-primary">Add new photo</Link>
         </footer>
     )
 }
