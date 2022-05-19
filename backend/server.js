@@ -147,6 +147,13 @@ let testuser = {
 
 registeredUsers.push(testuser);
 
+const testuserdata = {
+	firstname: "Jane",
+	lastname: "Doe",
+	id: 205,
+	urlsafe: "janedoe",
+	profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+}
 
 
 const createToken=() =>{
@@ -253,7 +260,7 @@ app.post("/login", function(req,res) {
 					ttl:now+time_to_life_diff
 				}
 				loggedSessions.push(session);
-				return res.status(200).json({"token":token});
+				return res.status(200).json({"token":token, "user":testuserdata});
 			})
 
 			return;

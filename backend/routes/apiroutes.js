@@ -166,7 +166,7 @@ router.get("/pictures",function(req,res) {
     return res.status(200).json(database);
 })
 //get own images / get images of user
-router.get("/user/pictures/:user",function(req,res){
+router.get("/user/:user/pictures",function(req,res){
 	let userid = parseInt(req.params.user, 10);
 	let tempdatabase = [];
 	for(let i=0; i<database.length;i++){
@@ -177,7 +177,7 @@ router.get("/user/pictures/:user",function(req,res){
 	return res.status(200).json(tempdatabase);
 })
 //get images that user has bookmarked
-router.get("/user/bookmarks/:user",function(req,res){
+router.get("/user/:user/bookmarks",function(req,res){
 	let userid = parseInt(req.params.user, 10);
 	let tempdatabase = [];
 	for(let i=0; i<database.length;i++){
@@ -246,7 +246,7 @@ router.post("/pictures",function(req,res){
     return res.status(200).json(picture);
 })
 //post comment
-router.post("/comment/:photoid", function(req,res){
+router.post("/pictures/:photoid/comments", function(req,res){
 	let pictureid = parseInt(req.params.photoid, 10);
 	comment = {
 		user: req.body.user,
@@ -263,11 +263,11 @@ router.post("/comment/:photoid", function(req,res){
 	return res.status(201).json({message:"successful"});
 })
 //add bookmark
-router.post("/bookmark/:id",  function(req,res){
+router.post("/pictures/:id/bookmarks",  function(req,res){
 	return res.status(200).json({message:"successful"});
 })
 //follow user
-router.post("/follow/:id", function(req,res){
+router.post("/users/:id/following", function(req,res){
 	return res.status(200).json({message:"successful"});
 })
 //edit user settings
@@ -322,15 +322,15 @@ router.delete("/pictures/:id",function(req,res){
     return res.status(404).json({message: "not found"}); 
 })
 //delete comment
-router.delete("/comments/:id",function(req,res){
+router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 
 })
 //unfollow user
-router.delete("/api/follow/:id",function(req,res){
+router.delete("/users/:id/following/:userid",function(req,res){
 
 })
 //remove bookmark
-router.delete("/api/bookmark/:id",function(req,res){
+router.delete("/pictures/:id/bookmarks/:userid",function(req,res){
 
 })
 
