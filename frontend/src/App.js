@@ -33,9 +33,7 @@ function App() {
 
 
 	let tempRender = <Routes>
-		<Route exact path="/" element={
-			<LogIn />
-		} />
+		<Route exact path="/" element={<LogIn />} />
 		<Route path="*" element={<Navigate to="/" />} />
 	</Routes>
 

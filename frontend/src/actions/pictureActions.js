@@ -35,19 +35,25 @@ export const CLEAR_FILTER = "CLEAR_FILTER";
 export const HOME = "HOME"
 export const USER = "USER"
 export const BOOKMARKS = "BOOKMARKS"
+export const PROFILE = "PROFILE"
 
 //async action creators
 
-const responseCheckGet = async (response, dispatch, succeed, failed) => {
+const responseCheckGet = async (response, dispatch, succeed, failed, page, page_id) => {
     if (!response) {
         dispatch(failed("Received no response, check internet connection"))
         return;
     }
     if (response.ok) {
-        let data = await response.json();
-        if (!data) {
+        let list = await response.json();
+        if (!list) {
             dispatch(failed("Failed to parse data"))
             return;
+        }
+        let data = {
+            data:list,
+            page:page,
+            page_id:page_id
         }
         dispatch(succeed(data));
     } else {
@@ -61,14 +67,14 @@ const responseCheckGet = async (response, dispatch, succeed, failed) => {
     }
 }
 
-const responseCheckUpdate = (response, dispatch, succeed, failed, token) => {
+const responseCheckUpdate = (response, dispatch, succeed, failed, token, page, page_id) => {
     if (!response) {
         dispatch(failed("Received no response, check internet connection"))
         return;
     }
     if (response.ok) {
         dispatch(succeed());
-        dispatch(getList(token));
+        dispatch(getList(token, page, page_id));
     } else {
         if (response.status === 403) {
             dispatch(clearImageState());
@@ -99,25 +105,33 @@ const loadResponse = async (dispatch, url, request) => {
     return response;
 }
 
-export const getList = (token) => {
+export const getList = (token, page, page_id) => {
     
-    return async (dispatch) => 
+    return async (dispatch, getState) => 
     {
         let url = "/api/pictures";
-        /*let tmpPage = getState().images.page;
+        let state = getState()
+        let tmpPage = state.images.page //HOME;
         if (page) {
             tmpPage = page;
         }
+        let tmpPageId = state.images.page_id
+        if (page_id) {
+            tmpPageId = page_id;
+        }
         
         if(tmpPage === USER){
-            url = "/api/user/" + getState().login.user + "/pictures"
+            url = "/api/user/" + state.login.user.id + "/pictures" //user.urlsafe might look nicer
         }
-        if (tmpPage === USER) {
-            url = "/api/user/" + getState().login.user + "/bookmarks"
-        }*/
+        if (tmpPage === BOOKMARKS) {
+            url = "/api/user/" + state.login.user.id + "/bookmarks"
+        }
+        if(tmpPage === PROFILE){
+            url = "/api/user/" + state.images.tmpPageId + "/pictures"
+        }
         let request = createRequest("GET", token);
         let response = await loadResponse(dispatch, url, request);
-        responseCheckGet(response, dispatch, fetchListSuccess, fetchListFailed);
+        responseCheckGet(response, dispatch, fetchListSuccess, fetchListFailed, tmpPage, tmpPageId);
     }
 }
 
@@ -187,10 +201,12 @@ export const unfollow = (token, following_id, user_id) => {
 
 //action creators
 
-const fetchListSuccess = (list) => {
+const fetchListSuccess = (data) => {
     return {
         type: FETCH_LIST_SUCCESS,
-        list: list
+        list: data.data,
+        page: data.page,
+        page_id: data.page_id
     }
 }
 

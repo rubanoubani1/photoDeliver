@@ -3,7 +3,7 @@ import Footer from "./Footer";
 import FilterableImageList from "./FilterableImageList";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from 'react';
-import { getList } from "../actions/pictureActions";
+import { getList, HOME } from "../actions/pictureActions";
 
 const Home = (props) =>{
 
@@ -12,7 +12,7 @@ const Home = (props) =>{
 
     useEffect(() => {
         if (state.isLogged) {
-            dispatch(getList(state.token));
+            dispatch(getList(state.token, HOME));
         }
     }, []);
 

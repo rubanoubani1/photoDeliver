@@ -1,13 +1,19 @@
 import NavigationBar from "./NavigationBar";
-import ImageList from "./ImageList";
 import {useEffect} from 'react';
 import FilterableImageList from "./FilterableImageList";
+import { getList, BOOKMARKS } from '../actions/pictureActions';
+import { useDispatch, useSelector } from "react-redux";
 
 const SavePage = (props) => {
 
-    /*useEffect(() => {
-        props.funcs.getPictures(undefined,"saved", props.user_id)
-    }, []);*/
+    const dispatch = useDispatch();
+    const state = useSelector(state => state.login);
+
+    useEffect(() => {
+        if (state.isLogged) {
+            dispatch(getList(state.token, BOOKMARKS));
+        }
+    }, []);
 
     return(
     <div>

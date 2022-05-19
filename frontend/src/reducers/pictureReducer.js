@@ -22,9 +22,7 @@ import {
     SET_FILTER,
     CLEAR_FILTER,
 
-    HOME,
-    USER,
-    BOOKMARKS
+    HOME
 } from '../actions/pictureActions';
 
 const emptyState = {
@@ -36,6 +34,7 @@ const emptyState = {
         dateto: ""
     },
     page: HOME,
+    page_id: "",
     error: ""
 }
 
@@ -70,7 +69,10 @@ const pictureReducer = (state = initialState, action) => {
         case FETCH_LIST_SUCCESS:
             tmpState = {
                 ...state,
-                list:action.list
+                list:action.list,
+                page:action.page,
+                page_id:action.page_id,
+                error:""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -84,7 +86,8 @@ const pictureReducer = (state = initialState, action) => {
 
         case ADD_IMAGE_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -97,7 +100,8 @@ const pictureReducer = (state = initialState, action) => {
             return tmpState;
         case REMOVE_IMAGE_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -111,7 +115,8 @@ const pictureReducer = (state = initialState, action) => {
 
         case ADD_COMMENT_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -124,7 +129,8 @@ const pictureReducer = (state = initialState, action) => {
             return tmpState;
         case REMOVE_COMMENT_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -138,7 +144,8 @@ const pictureReducer = (state = initialState, action) => {
 
         case ADD_BOOKMARK_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -151,7 +158,8 @@ const pictureReducer = (state = initialState, action) => {
             return tmpState;
         case REMOVE_BOOKMARK_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -165,7 +173,8 @@ const pictureReducer = (state = initialState, action) => {
 
         case FOLLOW_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
@@ -178,7 +187,8 @@ const pictureReducer = (state = initialState, action) => {
             return tmpState;
         case UNFOLLOW_SUCCESS:
             tmpState = {
-                ...state
+                ...state,
+                error: ""
             }
             saveToStorage(tmpState);
             return tmpState;
