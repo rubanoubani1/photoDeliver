@@ -10,7 +10,7 @@ const SearchBar = (props) => {
     const[state, setState] = useState({
         query: "",
         datefrom: new Date(0).toJSON().slice(0, 10),
-        dateto: new Date(Date.now() + 31536000000).toJSON().slice(0, 10)
+        dateto: new Date(Date.now() + (1000*60*60*24)).toJSON().slice(0, 10)
     })
 
     const onChange = (event) => {

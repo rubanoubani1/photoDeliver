@@ -3,9 +3,7 @@ import PictureForm from "./PictureForm";
 
 
 const AddPicture = (props) => {
-    const sendImage = () => {
-        console.log("sendImage has been called");
-    }
+    
     return (
         <div style={{ color: "E5E5E5", backgroundColor: "#FFE6D4" }}>
             <NavigationBar />
@@ -20,7 +18,7 @@ const AddPicture = (props) => {
 
                         <br />
                         <hr />
-                        <PictureForm sendImage={sendImage} funcs={props.funcs}/>
+                        <PictureForm />
 
 
                     </div>
