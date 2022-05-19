@@ -31,11 +31,11 @@ const ExpandableCommentList = (props) => {
             deleteComment={() => props.deleteComment(item.id)}/>
     })
 
-    let viewAllButton = <button onClick={() => setDisplayCount(commentComponents.length)}>View all comments...</button>
+    let viewAllButton = <button onClick={() => setDisplayCount(commentComponents.length)} className="btn btn-primary">View all comments...</button>
     if (commentComponents.length <= 1){
         viewAllButton = <span></span> //remove the button if no more comments to show
     } else if (commentComponents.length <= state.displayedCommentsCount){
-        viewAllButton = <button onClick={()=>setDisplayCount(1)}>Show less comments</button>
+        viewAllButton = <button onClick={() => setDisplayCount(1)} className="btn btn-primary">Show less comments</button>
     }
 
     let commentForm = [];

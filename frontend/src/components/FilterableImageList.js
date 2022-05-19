@@ -26,7 +26,7 @@ const FilterableImageList = (props) => {
     return (
         <div>
             <SearchBar setFilter={setFilter} query={state.filter} datefrom={state.datefrom} dateto={state.dateto}/>
-            <ImageList list={state.filteredList} user_id={props.user_id} funcs={props.funcs}/>
+            <ImageList list={props.list} user_id={props.user_id} funcs={props.funcs}/>
         </div>
     );
 }
