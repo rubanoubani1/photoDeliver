@@ -1,7 +1,12 @@
 //import LogInForm from './LogInForm';
 import {useState, useEffect} from 'react';
+import { useDispatch } from 'react-redux';
+import { login, loginFailed } from '../actions/loginActions';
 
 const LogIn =(props) => {
+
+	const dispatch = useDispatch();
+
 	const[state,setState] = useState({
 		username:'',
 		password:''
@@ -17,20 +22,17 @@ const LogIn =(props) => {
 		})
 	}
 
-
-	let funcs = props.funcs;
-
 	const onSubmit =  (event) => {
 		event.preventDefault();
 		if(state.username.length < 4 || state.password.length < 8) {
-			funcs.setError("Username needs to be atleast four and password eight characters long");
+			dispatch(loginFailed("Username needs to be at least four and password eight characters long"));
 			return;
 		}
 		let user = {
 			username:state.username,
 			password:state.password
 		}
-		funcs.login(user);
+		dispatch(login(user));
 
 	}
 

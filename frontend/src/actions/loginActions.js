@@ -126,7 +126,7 @@ const loginSuccess = (token, user) => {
     }
 }
 
-const loginFailed = (error) => {
+export const loginFailed = (error) => {
     return {
         type:LOGIN_FAILURE,
         error:error
