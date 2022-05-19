@@ -10,23 +10,18 @@ import MyPosts from './components/MyPosts';
 import Logout from './components/Logout';
 import AddPicture from './components/AddPicture';
 
-//import {useState} from 'react';
-import { useRequests } from './util/useRequests';
-
 
 function App() {
-
-  const [state, funcs] = useRequests();
 
   return (
     <div className="App">
        <Routes>
-        <Route exact path="/" element={<Home user_id={state.user.id} list={state.list} funcs={funcs}/>} />
-        <Route path="/saved" element={<SavePage user_id={state.user.id} list={state.list} funcs={funcs}/>} />
-        <Route path="/settings" element={<Settings/>} />
-        <Route path="/add" element={<AddPicture funcs={funcs} />} />
-        <Route path="/posts" element={<MyPosts user_id={state.user.id} list={state.list} funcs={funcs}/>} />
-        <Route path="/Logout" element={<Logout/>} />
+        <Route exact path="/" element={ <Home/> } />
+        <Route path="/saved" element={ <SavePage/> } />
+        <Route path="/settings" element={ <Settings/> } />
+        <Route path="/add" element={ <AddPicture/> } />
+        <Route path="/posts" element={ <MyPosts/> } />
+        <Route path="/Logout" element={ <Logout/> } />
       </Routes>
     </div>
   );

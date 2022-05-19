@@ -10,17 +10,25 @@ import {
     CLEAR_LOGIN_STATE
 } from '../actions/loginActions';
 
+const emptyState = {
+    user: {id:-1},
+    isLogged: false,
+    loading: false,
+    token: "",
+    error: ""
+}
+
 const getInitialState = () => {
     if(sessionStorage.getItem("loginstate")){
         let state = JSON.parse(sessionStorage.getItem("loginstate"));
-        return state;
+        return {
+            ...emptyState,
+            ...state
+        };
     } else {
         return {
-            isLogged:false,
-            loading:false,
-            token:"",
-            error:""
-        }
+            ...emptyState
+        };
     }
 }
 
@@ -63,6 +71,7 @@ const loginReducer = (state = initialState, action) => {
             return tmpState;
         case LOGIN_SUCCESS:
             tmpState = {
+                user:action.user,
                 isLogged:true,
                 token:action.token,
                 loading:false,
@@ -80,28 +89,20 @@ const loginReducer = (state = initialState, action) => {
             return tmpState;
         case LOGOUT_SUCCESS:
             tmpState = {
-                isLogged:false,
-                token:"",
-                loading:false,
-                error:""
+                ...emptyState
             }
             saveToStorage(tmpState);
             return tmpState;
         case LOGOUT_FAILURE:
             tmpState = {
-                isLogged: false,
-                token: "",
-                loading: false,
+                ...emptyState,
                 error: action.error
             }
             saveToStorage(tmpState);
             return tmpState;
         case CLEAR_LOGIN_STATE:
             tmpState = {
-                isLogged: false,
-                token: "",
-                loading: false,
-                error: ""
+                ...emptyState
             }
             saveToStorage(tmpState);
             return tmpState;

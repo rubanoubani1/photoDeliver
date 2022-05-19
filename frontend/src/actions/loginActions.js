@@ -60,7 +60,7 @@ export const login = (user) => {
                 dispatch(loginFailed("error parsing login information"))
                 return;
             }
-            dispatch(loginSuccess(data.token));
+            dispatch(loginSuccess(data.token, data.user));
             dispatch(getList(data.token));
         } else {
             dispatch(loginFailed("login failed, error: "+response.status))
@@ -118,10 +118,11 @@ export const registerFailed = (error) => {
     }
 }
 
-const loginSuccess = (token) => {
+const loginSuccess = (token, user) => {
     return {
         type:LOGIN_SUCCESS,
-        token:token
+        token:token,
+        user:user
     }
 }
 

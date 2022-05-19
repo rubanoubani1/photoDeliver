@@ -27,6 +27,15 @@ export const UNFOLLOW_FAILURE = "UNFOLLOW_FAILURE";
 
 export const CLEAR_IMAGE_STATE = "CLEAR_IMAGE_STATE";
 
+export const SET_FILTER = "SET_FILTER";
+export const CLEAR_FILTER = "CLEAR_FILTER";
+
+// page constants
+
+export const HOME = "HOME"
+export const USER = "USER"
+export const BOOKMARKS = "BOOKMARKS"
+
 //async action creators
 
 const responseCheckGet = async (response, dispatch, succeed, failed) => {
@@ -91,9 +100,23 @@ const loadResponse = async (dispatch, url, request) => {
 }
 
 export const getList = (token) => {
-    return async (dispatch) => {
+    
+    return async (dispatch) => 
+    {
+        let url = "/api/pictures";
+        /*let tmpPage = getState().images.page;
+        if (page) {
+            tmpPage = page;
+        }
+        
+        if(tmpPage === USER){
+            url = "/api/user/" + getState().login.user + "/pictures"
+        }
+        if (tmpPage === USER) {
+            url = "/api/user/" + getState().login.user + "/bookmarks"
+        }*/
         let request = createRequest("GET", token);
-        let response = await loadResponse(dispatch, "/api/pictures", request);
+        let response = await loadResponse(dispatch, url, request);
         responseCheckGet(response, dispatch, fetchListSuccess, fetchListFailed);
     }
 }
@@ -277,5 +300,16 @@ const unfollowFailed = (error) => {
 export const clearImageState = () => {
     return {
         type: CLEAR_IMAGE_STATE
+    }
+}
+export const setFilter = (filter) => {
+    return {
+        type: SET_FILTER,
+        filter: filter
+    }
+}
+export const clearFilter = () => {
+    return {
+        type: CLEAR_FILTER
     }
 }

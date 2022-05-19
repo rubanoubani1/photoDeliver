@@ -1,6 +1,11 @@
-import {useState} from 'react';
+import { useState } from 'react';
+import { useDispatch, useSelector } from "react-redux";
+import { addComment } from "../actions/pictureActions";
 
 const CommentForm = (props) => {
+
+    const dispatch = useDispatch();
+    const token = useSelector(state=>state.login.token);
 
     const [state, setState] = useState({
         comment: ""
@@ -20,7 +25,7 @@ const CommentForm = (props) => {
         let item = {
             ...state
         }
-        props.addComment(props.image_id, item);
+        dispatch(addComment(token, item, props.image_id));
         setState({
             comment: ""
         });

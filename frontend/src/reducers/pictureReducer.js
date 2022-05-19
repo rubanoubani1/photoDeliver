@@ -1,39 +1,64 @@
 import {
-FETCH_LIST_SUCCESS,
-FETCH_LIST_FAILURE,
-ADD_IMAGE_SUCCESS,
-ADD_IMAGE_FAILURE,
-REMOVE_IMAGE_SUCCESS,
-REMOVE_IMAGE_FAILURE,
-ADD_COMMENT_SUCCESS,
-ADD_COMMENT_FAILURE,
-REMOVE_COMMENT_SUCCESS,
-REMOVE_COMMENT_FAILURE,
-ADD_BOOKMARK_SUCCESS,
-ADD_BOOKMARK_FAILURE,
-REMOVE_BOOKMARK_SUCCESS,
-REMOVE_BOOKMARK_FAILURE,
-FOLLOW_SUCCESS,
-FOLLOW_FAILURE,
-UNFOLLOW_SUCCESS,
-UNFOLLOW_FAILURE,
-CLEAR_IMAGE_STATE
+    FETCH_LIST_SUCCESS,
+    FETCH_LIST_FAILURE,
+    ADD_IMAGE_SUCCESS,
+    ADD_IMAGE_FAILURE,
+    REMOVE_IMAGE_SUCCESS,
+    REMOVE_IMAGE_FAILURE,
+    ADD_COMMENT_SUCCESS,
+    ADD_COMMENT_FAILURE,
+    REMOVE_COMMENT_SUCCESS,
+    REMOVE_COMMENT_FAILURE,
+    ADD_BOOKMARK_SUCCESS,
+    ADD_BOOKMARK_FAILURE,
+    REMOVE_BOOKMARK_SUCCESS,
+    REMOVE_BOOKMARK_FAILURE,
+    FOLLOW_SUCCESS,
+    FOLLOW_FAILURE,
+    UNFOLLOW_SUCCESS,
+    UNFOLLOW_FAILURE,
+    CLEAR_IMAGE_STATE,
+
+    SET_FILTER,
+    CLEAR_FILTER,
+
+    HOME,
+    USER,
+    BOOKMARKS
 } from '../actions/pictureActions';
+
+const emptyState = {
+    list: [],
+    filteredList: [],
+    filter: {
+        query: "",
+        datefrom: "",
+        dateto: ""
+    },
+    page: HOME,
+    error: ""
+}
 
 const getInitialState = () => {
     if (sessionStorage.getItem("imagestate")) {
         let state = JSON.parse(sessionStorage.getItem("imagestate"));
-        return state;
+        return {
+            ...emptyState,
+            ...state
+        };
     } else {
         return {
-            list: [],
-            error: ""
+            ...emptyState
         }
     }
 }
 
 const saveToStorage = (state) => {
     sessionStorage.setItem("imagestate", JSON.stringify(state));
+}
+
+const filterList = (list, filter) => {
+    return list; //TODO: make the filter filter the list
 }
 
 const initialState = getInitialState();
@@ -166,8 +191,25 @@ const pictureReducer = (state = initialState, action) => {
             return tmpState;
         case CLEAR_IMAGE_STATE:
             tmpState = {
-                list: [],
-                error: ""
+                ...emptyState
+            }
+            saveToStorage(tmpState);
+            return tmpState;
+        case SET_FILTER:
+            tmpState = {
+                ...state,
+                filter:action.filter,
+                filteredList:filterList(state.list, action.filter)
+            }
+            saveToStorage(tmpState);
+            return tmpState;
+        case CLEAR_FILTER:
+            tmpState = {
+                ...state,
+                filter:{
+                    ...(emptyState.filter)
+                },
+                filteredList:state.list
             }
             saveToStorage(tmpState);
             return tmpState;

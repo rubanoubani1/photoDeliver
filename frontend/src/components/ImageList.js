@@ -1,10 +1,15 @@
-
+import { useSelector } from 'react-redux';
 import ImageContainer from "./ImageContainer";
 
 const ImageList = (props) => {
+
+    const list = useSelector(state => state.images.list);
     
-    let imageContainerList = props.list.map((item)=>{
-        return <ImageContainer key={item.id} picture={item} user_id={props.user_id} funcs={props.funcs}/>
+    let imageContainerList = list.map((item)=>{
+        return <ImageContainer 
+            key={item.id} 
+            picture={item}
+        />
     })
 
     return (

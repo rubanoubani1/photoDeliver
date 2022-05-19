@@ -4,19 +4,24 @@ import ImageTextContent from "./ImageTextContent";
 
 const ImageContainer = (props) => {
 
-    
     return (
         <div style={{ width: "500px", margin: "20px" }}>
-            <ImageHeader user={props.picture.owner} date={props.picture.date} />
-            <Image url={props.picture.url} alt={props.picture.alt} />
+            <ImageHeader 
+                user={props.picture.owner} 
+                date={props.picture.date} 
+            />
+            <Image 
+                url={props.picture.url} 
+                alt={props.picture.alt} 
+                id={props.picture.id}
+            />
             <ImageTextContent 
                 title={props.picture.title} 
                 comments={props.picture.comments} 
-                user_id={props.user_id} 
                 owner_id={props.picture.owner.id} 
                 image_id={props.picture.id}
                 bookmarked={props.picture.bookmarked}
-                funcs={props.funcs}/>
+            />
         </div>
     )
 

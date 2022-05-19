@@ -1,17 +1,25 @@
 import ProfileImage from "./ProfileImage";
+import { useDispatch, useSelector } from "react-redux";
+import { removeComment } from "../actions/pictureActions";
 
 const Comment = (props) => {
 
-    let controlButton = [<button key="delete" onClick={props.deleteComment} className="btn btn-primary" style={{float:"right"}}>Remove</button>];
-    if (props.user_id !== props.user.id && props.user_id !== props.owner_id) {
+    const dispatch = useDispatch();
+    const state = useSelector(state => ({
+        token:state.login.token,
+        user:state.login.user
+    }));
+
+    let controlButton = [<button key="delete" onClick={() => dispatch(removeComment(state.token, props.image_id, props.id))} className="btn btn-primary" style={{float:"right"}}>Remove</button>];
+    if (state.user.id !== props.comment.user.id && state.user.id !== props.owner_id) {
         controlButton = []; // render nothing if user is not the commenter nor the picture owner
     }
 
     return (
         <div>
             <div style={{display:"flex"}}>
-                <ProfileImage url={props.user.profilePictureUrl} />
-                <p>{props.user.firstname + " " + props.user.lastname}</p>
+                <ProfileImage url={props.comment.user.profilePictureUrl} />
+                <p>{props.comment.user.firstname + " " + props.comment.user.lastname}</p>
             </div>
             <div style={{ display: "flex", justifyContent:"space-between" }}>
             <p>{props.comment.text}</p>
