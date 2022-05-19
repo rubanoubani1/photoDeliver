@@ -156,7 +156,7 @@ settingstable.push(usersetting1);
 settingstable.push(usersetting2);
 
 userdatabase.push(testuser);
-console.log(userdatabase);
+
 let id = 100;
 
 //REST API

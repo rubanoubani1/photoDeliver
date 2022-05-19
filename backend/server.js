@@ -1,5 +1,7 @@
 const express = require("express");
 const apiroutes = require("./routes/apiroutes");
+const bcrypt = require("bcrypt");
+const crypto = require ("crypto");
 
 const app = express();
 
@@ -131,49 +133,150 @@ const database = [
 		bookmarked: "false"
 	}
 ];
-const userdatabase =[];
+
+//LOGIN DATABASE
+let registeredUsers = [];
+let loggedSessions = [];
+let time_to_life_diff = 3600000;
+
+
 let testuser = {
-	email:'user@user.com',
-	password:'user123'
+	email:'jane.doe@gmail.com',
+	password:'$2b$14$VuwxX7g049MbNc64V7ue2.q5TNiqtgnJFqtpxRDlGLG3f0E2I7Ol2'
 }
-userdatabase.push(testuser);
-console.log(userdatabase);
-let id = 100;
+
+registeredUsers.push(testuser);
+
+
+
+const createToken=() =>{
+	let token = crypto.randomBytes(128);
+	return token.toString("hex");
+}
+
+isUserLogged = (req,res,next)=>{
+
+	if(!req.headers.token) {
+		return res.status(403).json({message:"Forbidden!"});
+	}
+	for(let i=0; i<loggedSessions.length;i++){
+		if(req.headers.token===loggedSessions[i].token){
+			let now= Date.now();
+			if(now>loggedSessions[i].ttl){
+				loggedSessions.splice(i,1);
+				return res.status(403).json({message:"Forbidden!"});
+			}
+			loggedSessions[i].ttl=now+time_to_life_diff; // plus another hour
+			req.session = {};
+			req.session.user = loggedSessions[i].user;
+			return next();
+		}
+	}
+	return res.status(403).json({message:"Forbidden!"});
+}
+
+
 
 //HELPERS
 const port = process.env.port || 3001;
 
 
 
-//Login
-app.post("/api/login",function(req,res) {
-	if(!req.body) {
-		return res.status(400).json({message:"Bad request"});
-	}
-	/*if(!req.body.email||!req.body.password) {
-		return res.status(400).json({message:"Bad request"});
-	}*/
-
+//Register
+app.post("/register", function(req,res) {
+	if(!req.body){
+		return res.status(400).json({message:"Please Provide proper credentials"});
+	} 
 	
-	let email=req.body.email;
-	let password = req.body.password;
-	if(!password||!email) {
-		return [];
+	if(!req.body.username||!req.body.password){
+		return res.status(400).json({message:"Please Provide proper credentails"});
 	}
-	
-	let user = userdatabase.filter(data=> {return (data.email==email)&&(data.password==password)});
 
-	if(user.length==0){
-		return res.status(200).json(false);
-		
-	}else{
-		return res.status(200).json(true);;
+	if(req.body.username.length<4|| req.body.password.length<8) {
+		return res.status(400).json({message:"Please provide proper credentails"});
+	}
+	for(let i =0;i<registeredUsers.length;i++){
+		if(req.body.username===registeredUsers[i].username){
+			return res.status(409).json({message:"User already in use"});
+		}
+	}
+
+	bcrypt.hash(req.body.password,14 , function (err, hash){
+		if(err){
+			return res.status(500).json({message:"Internal server error"});
+		}
+		let user = {
+			username:req.body.username,
+			password:hash
+		}
 			
+		registeredUsers.push(user);
+		
+		return res.status(201).json({message:"Register Success"});
+	});
+
+	
+})
+
+app.post("/login", function(req,res) {
+	
+	if(!req.body){
+		return res.status(400).json({message:"Please Provide proper credentials"});
+	} 
+	
+	if(!req.body.username||!req.body.password){
+		return res.status(400).json({message:"Please Provide proper credentails"});
 	}
 
+	if(req.body.username.length<4|| req.body.password.length<8) {
+		return res.status(400).json({message:"Please provide proper credentails"});
+	}
+	for(let i = 0;i<registeredUsers.length;i++){
+		
+		if(req.body.username===registeredUsers[i].email){
+		
+			bcrypt.compare(req.body.password, registeredUsers[i].password,function(err, success){
+				
+			if(err){
+					return res.status(500).json({message:"Internal server error"});
+				}
+				if(!success){
+					return res.status(401).json({message:"Unauthrized!"});
+				}
+				
+				let token = createToken();
+			
+				let now = Date.now();
+				let session = {
+					user:req.body.username,
+					token:token,
+					ttl:now+time_to_life_diff
+				}
+				loggedSessions.push(session);
+				return res.status(200).json({"token":token});
+			})
+
+			return;
+		}
+	}
+	return res.status(401).json({message:"Unauthrized!"});
 });
 
-app.use("/api",apiroutes);
+app.post("/logout",function(req,res) {
+	if(!req.headers.token){
+		return res.status(404).json({message:"not found"})
+	}
+	for(let i =0;i<loggedSessions.length;i++){
+		if(req.headers.token===loggedSessions[i].token){
+			loggedSessions.splice(i,1);
+			return res.status(200).json({message:"succes"})
+		}
+	}
+	return res.status(404).json({message:"not found"})
+})
+
+
+app.use("/api",isUserLogged,apiroutes);
 
 app.listen(port);
 

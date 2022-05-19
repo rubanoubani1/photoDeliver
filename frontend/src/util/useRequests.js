@@ -6,7 +6,8 @@ export const useRequests = () => {
         list: [],
         message:"",
         loading: false,
-        token: "aaabbb",
+        token: "",
+        error:"",
         user: {
             firstname: "Jane",
             lastname: "Doe",
@@ -14,6 +15,7 @@ export const useRequests = () => {
             urlsafe: "janedoe",
             email: "jane.doe@gmail.com",
             profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
+            
         }
     });
 
@@ -76,6 +78,17 @@ export const useRequests = () => {
         });
     }
 
+    const setError = (error) => {
+		setState((state) => {
+			let tempState = {
+				...state,
+				error:error
+			}
+			saveToStorage(tempState);
+			return tempState;
+		})
+	}
+
     const clearState = () => {
         let emptyState = {
             isLogged: false,
@@ -105,6 +118,7 @@ export const useRequests = () => {
                                 ...state,
                                 list: data
                             }
+                            
                             saveToStorage(tmpState);
                             return tmpState;
                         });
@@ -138,14 +152,17 @@ export const useRequests = () => {
                         setMessage("Register was a success!");
                         return;
                     case "login": {
+                        
                         let data = await response.json();
+                        
                         setState((state) => {
                             let tmpState = {
                                 ...state,
                                 isLogged: true,
                                 token: data.token,
-                                user: data.user
+                               // user: data.user
                             }
+                           
                             saveToStorage(tmpState);
                             return tmpState;
                         });
@@ -259,9 +276,11 @@ export const useRequests = () => {
     const getPictures = (paramtoken) => {
         let url = "/api/pictures"
         let token = state.token;
+ 
         if (paramtoken) {
             token = paramtoken
         }
+        
         setUrlRequest({
             url: url,
             request: {
@@ -406,6 +425,9 @@ export const useRequests = () => {
         addBookmark:addBookmark,
         removeBookmark:deleteBookmark,
         follow:follow,
-        unfollow:unfollow
+        unfollow:unfollow,
+        saveToStorage:saveToStorage,
+        setError:setError
+        
     }];
 }
