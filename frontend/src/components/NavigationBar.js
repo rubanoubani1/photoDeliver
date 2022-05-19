@@ -7,7 +7,7 @@ const NavigationBar = () => {
     const state = useSelector(state=>state.login);
 
     let conditionalPicture = [];
-    if (state.isLogged){
+    if (state.isLogged && state.user){
         conditionalPicture = [<ProfileImage key="profileimage" url={state.user.profilePictureUrl}/>]
     }
 
