@@ -1,11 +1,29 @@
 const express = require("express");
 const apiroutes = require("./routes/apiroutes");
 const bcrypt = require("bcrypt");
-const crypto = require ("crypto");
+const crypto = require("crypto");
+const mongoose = require('mongoose');
 
 const app = express();
 
 app.use(express.json());
+
+// ENVIRONMENT VARIABLES
+const port = process.env.PORT || 3001;
+const mongo_user = process.env.MONGODB_USER;
+const mongo_pw = process.env.MONGODB_PASSWORD;
+const mongo_url = process.env.MONGODB_URL;
+const mongo_db = "photoDeliverDatabase"
+
+//MONGOOSE CONNECTION
+const connection_url = "mongodb+srv://" + mongo_user + ":" + mongo_pw + "@" + mongo_url + "/" + mongo_db + "?retryWrites=true&w=majority";
+
+mongoose.connect(connection_url).then(
+	() => console.log("successfully connected"),
+	(error) => console.log("failed to connect, error: " + error)
+)
+
+mongoose.set("toJSON", { virtuals: true });
 
 //DATABASE
 
@@ -174,11 +192,6 @@ isUserLogged = (req,res,next)=>{
 	}
 	return res.status(403).json({message:"Forbidden!"});
 }
-
-
-
-//HELPERS
-const port = process.env.port || 3001;
 
 
 
