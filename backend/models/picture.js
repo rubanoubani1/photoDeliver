@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const comment = require('./comment')
+const {commentSchema} = require('./comment')
 
 const schema = mongoose.Schema({
     owner: { index: true, type: String },
@@ -9,7 +9,7 @@ const schema = mongoose.Schema({
     altText:String,
     tags: [String],
     bookmarkedBy: [String],
-    comments: [comment.schema],
+    comments: [commentSchema],
 }, {
     timestamps: {
         createdAt: 'created_at', // Use `created_at` to store the created date

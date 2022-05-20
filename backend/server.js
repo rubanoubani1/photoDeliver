@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const mongoose = require('mongoose');
 const userModel = require('./models/loginuser');
+const userdataModel = require('./models/user');
 const sessionModel = require('./models/session');
 
 const app = express();
@@ -94,7 +95,18 @@ app.post("/register", function(req,res) {
 			username: req.body.username,
 			password: hash
 		});
-		user.save(function (err, user) {
+		let userdata = new userdataModel({
+			user: req.body.username,
+			urlsafe: req.body.username,
+			firstname: "",
+			lastname: "",
+			profilePictureUrl: "",
+			bio: "",
+			following: [],
+			followed: [],
+			bookmarked: []
+		});
+		userdata.save(function (err, userdata) {
 			if (err) {
 				console.log("Failed to save new user, error: " + err);
 				if (err.code === 11000) {
@@ -102,7 +114,16 @@ app.post("/register", function(req,res) {
 				}
 				return res.status(500).json({ message: "internal server error" });
 			}
-			return res.status(201).json({ message: "user registered" });
+			user.save(function (err, user) {
+				if (err) {
+					console.log("Failed to save new user, error: " + err);
+					if (err.code === 11000) {
+						return res.status(409).json({ message: "username alreasy in use" });
+					}
+					return res.status(500).json({ message: "internal server error" });
+				}
+				return res.status(201).json({ message: "user registered" });
+			})
 		})
 	})
 

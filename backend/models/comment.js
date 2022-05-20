@@ -11,6 +11,6 @@ const schema = mongoose.Schema({
 });
 
 module.exports = {
-    schema:mongoose.Schema,
-    model:mongoose.model("Comment", schema)
+    commentSchema:mongoose.Schema,
+    commentModel:mongoose.model("Comment", schema)
 };

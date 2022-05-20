@@ -1,5 +1,10 @@
 const { request, text } = require("express");
 const express = require("express");
+const pictureModel = require("../models/picture");
+const { commentModel } = require("../models/comment");
+const tagModel = require("../models/tag");
+const notificationModel = require("../models/notification");
+const userModel = require("../models/user");
 
 router = express.Router();
 
@@ -163,29 +168,61 @@ let id = 100;
 
 //get images
 router.get("/pictures",function(req,res) {
-    return res.status(200).json(database);
+	let query = {}; //{ "user": req.session.user };
+	pictureModel.find(query, function (err, pictures) {
+		if (err) {
+			console.log("error querying pictures, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		return res.status(200).json(pictures);
+	});
+    //return res.status(200).json(database);
 })
 //get own images / get images of user
 router.get("/user/pictures/:user",function(req,res){
-	let userid = parseInt(req.params.user, 10);
+	/*let userid = parseInt(req.params.user, 10);
 	let tempdatabase = [];
 	for(let i=0; i<database.length;i++){
 		if(userid === database[i].owner.id && database[i].bookmarked === false){
 				tempdatabase.push(database[i]);
 		}
 	}
-	return res.status(200).json(tempdatabase);
+	return res.status(200).json(tempdatabase);*/
+	let query = { "owner": req.params.user };
+	pictureModel.find(query, function (err, pictures) {
+		if (err) {
+			console.log("error querying pictures, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		return res.status(200).json(pictures);
+	});
 })
 //get images that user has bookmarked
 router.get("/user/bookmarks/:user",function(req,res){
-	let userid = parseInt(req.params.user, 10);
+	let userquery = { "user": req.params.user };
+	userModel.findOne(userquery, function (err, user) {
+		if (err) {
+			console.log("error querying user "+req.params.user+", err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		//TODO: check that the user.bookmarked and pictures have ids that can be queried
+		let query = { "_id": {"$in":user.bookmarked} };
+		pictureModel.find(query, function (err, pictures) {
+			if (err) {
+				console.log("error querying pictures, err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			return res.status(200).json(pictures);
+		});
+	});
+	/*let userid = parseInt(req.params.user, 10);
 	let tempdatabase = [];
 	for(let i=0; i<database.length;i++){
 		if(userid === database[i].owner.id && database[i].bookmarked === true){
 				tempdatabase.push(database[i]);
 		}
 	}
-	return res.status(200).json(tempdatabase);
+	return res.status(200).json(tempdatabase);*/
 })
 //get comments of an image
 router.get("/pictures/:id/comments",function(req,res){
@@ -201,7 +238,16 @@ router.get("/pictures/:id/comments",function(req,res){
 })
 //get an image
 router.get("/pictures/:id",function(req,res){
-	let pictureid = parseInt(req.params.id, 10);
+	let query = { "_id": req.params.id };
+	pictureModel.findOne(query, function (err, picture) {
+		if (err) {
+			console.log("error querying pictures, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		//if(picture)
+		return res.status(200).json(pictures);
+	});
+	/*let pictureid = parseInt(req.params.id, 10);
 	let picture = {};
 	for(let i=0; i<database.length;i++){
 		if(pictureid === database[i].id){
@@ -209,13 +255,23 @@ router.get("/pictures/:id",function(req,res){
 				return res.status(200).json(picture);
 		}
 	}
-	return res.status(404).json({message: "not found"}); 
+	return res.status(404).json({message: "not found"}); */
 })
 //post image
 router.post("/pictures",function(req,res){
 	if(!req.body) {
         return res.status(400).json({ message:"Bad request"});
     }
+	let owner = {}
+	if(req.body.owner){
+		owner = {
+			firstname: req.body.owner.firstname,
+			lastname: req.body.owner.lastname,
+			id: req.body.owner.id,
+			urlsafe: req.body.owner.urlsafe,
+			profilePictureUrl: req.body.owner.profilePictureUrl
+		}
+	}
     let tempicture = { 
         id:id,
         owner:req.session.userid,
@@ -225,14 +281,8 @@ router.post("/pictures",function(req,res){
 		tags:request.body.tags,
         date:req.body.date
     }
-	let picture ={
-		owner: {
-			firstname: req.body.owner.firstname,
-			lastname: req.body.owner.lastname,
-			id: req.session.userid,
-			urlsafe: req.body.owner.urlsafe,
-			profilePictureUrl: req.body.owner.profilePictureUrl
-		},
+	let picture = {
+		owner: owner,
 		url: req.body.url,
 		id: id,
 		alt: req.body.alt,
@@ -241,6 +291,28 @@ router.post("/pictures",function(req,res){
 		comments: req.body.comments,
 		bookmarked: false
 	}
+	let userquery = { "user": req.session.user };
+	userModel.findOne(userquery, function (err, user) {
+		if (err) {
+			console.log("error querying user " + req.params.user + ", err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		let tags = req.body.description.split(/(\s+)/).filter((token)=>{
+			return token.startsWith("#")
+		})
+		picture.owner = user;
+		picture.comments = [];
+		picture.bookmarkedBy = [];
+		let pictureM = new pictureModel(picture);
+		pictureM.save(function (err) {
+			if (err) {
+				console.log("failed to save picture, err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			return res.status(201).json({ message: "success" });
+		})
+	});
+	
     id++;
     database.push(picture);
     return res.status(200).json(picture);
