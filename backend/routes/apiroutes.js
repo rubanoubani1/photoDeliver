@@ -1,7 +1,29 @@
-const { request, text } = require("express");
+const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+
 const express = require("express");
 
-router = express.Router();
+const FileReader = require("filereader");
+require("dotenv").config();
+//library for form data parsing
+//const multer =require("multer"); //can be removed
+//const fileUpload = multer(); //can be removed
+//const FileReader = require("filereader");  //can be removed
+//const streamifier = require("streamifier"); //can be removed
+//const formidable = require("formidable"); //can be removed
+//cloudinary api for uploading images
+const cloudinary = require("cloudinary").v2;
+// cloudinary configuration
+cloudinary.config({
+    cloud_name: process.env.YOUR_CLOUD_NAME,
+    api_key: process.env.YOUR_API_NAME,
+    api_secret: process.env.YOUR_API_SECRET
+});
+
+
+var router = express.Router();
+
+
+
 
 //DATABASE
 const database = [
@@ -211,43 +233,140 @@ router.get("/pictures/:id",function(req,res){
 	}
 	return res.status(404).json({message: "not found"}); 
 })
+router.post('/pictures', function (req, res) {
+	let picture ={				
+		owner: {
+			firstname: "Joe",//req.body.owner.firstname,
+			lastname: "Doe",//req.body.owner.lastname,
+			id: 222,//req.session.userid,
+			urlsafe: "",
+			//profilePictureUrl: req.body.owner.profilePictureUrl
+		},
+		url: "",
+		id: id,
+		//alt: req.body.alt,
+		title: req.body.title,
+		date: Date.now(),
+		bookmarked: false
+	}
+	console.log(req);
+	id++;
+	database.push(picture);
+    console.log(result);
+	return res.status(200).json(picture);
+});
+/*
 //post image
+//client sending multipart/form-data saving image to buffer and  sending it to cloudinary
+router.post('/pictures', fileUpload.single('image'), function (req, res, next) {
+    let streamUpload = (req) => {
+        return new Promise((resolve, reject) => {
+            let stream = cloudinary.uploader.upload_stream(
+              (error, result) => {
+                if (result) {
+                  resolve(result);
+                } else {
+                  reject(error);
+                }
+              }
+            );
+
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+    };
+/*
+    async function upload(req) {
+        let result = await streamUpload(req);
+		let picture ={				
+			owner: {
+				firstname: "Joe",//req.body.owner.firstname,
+				lastname: "Doe",//req.body.owner.lastname,
+				id: 222,//req.session.userid,
+				urlsafe: result.urlsafe,
+				//profilePictureUrl: req.body.owner.profilePictureUrl
+			},
+			url: result.url,
+			id: id,
+			//alt: req.body.alt,
+			title: req.body.title,
+			date: Date.now(),
+			bookmarked: false
+		}
+		id++;
+		database.push(picture);
+        console.log(result);
+		return res.status(200).json(picture);
+    }
+
+    
+});
+*//*
+const getBase64FromUrl = async (blob) => {
+   
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64data = reader.result;
+        resolve(base64data)
+      };
+    });
+}
+const toDataUrl = function(cover, callback) {
+	const xhr = new XMLHttpRequest();
+	xhr.responseType = 'blob';
+	xhr.onload = function() {
+	   var reader = new FileReader();
+	   reader.onloadend = function() {
+		 callback(reader.result);
+	   }
+	   reader.readAsDataURL(xhr.response);
+	};
+	xhr.open('GET', cover);
+	xhr.send();
+}
+   
 router.post("/pictures",function(req,res){
 	if(!req.body) {
         return res.status(400).json({ message:"Bad request"});
-    }
-    let tempicture = { 
-        id:id,
-        owner:req.session.userid,
-        url:req.body.url,
-		title:req.body.title,
-        description:req.body.description,
-		tags:request.body.tags,
-        date:req.body.date
-    }
-	let picture ={
-		owner: {
-			firstname: req.body.owner.firstname,
-			lastname: req.body.owner.lastname,
-			id: req.session.userid,
-			urlsafe: req.body.owner.urlsafe,
-			profilePictureUrl: req.body.owner.profilePictureUrl
-		},
-		url: req.body.url,
-		id: id,
-		alt: req.body.alt,
-		title: req.body.title,
-		date: req.body.date,
-		comments: req.body.comments,
-		bookmarked: false
-	}
-    id++;
-    database.push(picture);
-    return res.status(200).json(picture);
-})
+    }      
+	toDataUrl (req.body.image, function( base64Img ) {
+        cloudinary.uploader( base64Img,{
+          folder: 'testi',
+           resource_type: 'raw',
+         },function(err, res){ 
+            if (err){ 
+              console.log(err); 
+            } else { 
+              console.log(res);
+			  let picture ={				
+				owner: {
+					firstname: "Joe",//req.body.owner.firstname,
+					lastname: "Doe",//req.body.owner.lastname,
+					id: 222,//req.session.userid,
+					urlsafe: result.urlsafe,
+				//profilePictureUrl: req.body.owner.profilePictureUrl
+			  	},
+			  	url: result.url,
+			  	id: id,
+			  	//alt: req.body.alt,
+			  	title: req.body.title,
+			  	date: Date.now(),
+			  	bookmarked: false
+			  }
+			  id++;
+			  database.push(picture);
+			  return res.status(200).json(picture);
+            } 
+        });
+    })
+	
+	
+//	});
+});*/
 //post comment
 router.post("/comment/:photoid", function(req,res){
-	let pictureid = parseInt(req.params.photoid, 10);
+	/*let pictureid = parseInt(req.params.photoid, 10);
 	comment = {
 		user: req.body.user,
 		id: req.body.id,
@@ -259,7 +378,56 @@ router.post("/comment/:photoid", function(req,res){
 				database[i].comments.push(comment);
 				return res.status(200).json({message:"successful"});
 		}
+	}*/
+	return res.status(201).json({message:"successful"});
+})
+/*
+router.post("/pictures",async function(req,res){
+	if(!req.body) {
+        return res.status(400).json({ message:"Bad request"});
+    }      
+
+	// Find Cloudinary documentation using the link below
+	// https://cloudinary.com/documentation/upload_images
+	console.log(typeof req.body.image)
+	console.log(req.body);
+	//const photourl = await getBase64FromUrl(req.body.image);
+	//cloudinary.uploader.upload(photourl, (err,result) => {
+	let picture ={				
+					owner: {
+					firstname: "Joe",//req.body.owner.firstname,
+					lastname: "Doe",//req.body.owner.lastname,
+					id: 222,//req.session.userid,
+					urlsafe: result.urlsafe,
+					//profilePictureUrl: req.body.owner.profilePictureUrl
+				},
+				url: result.url,
+				id: id,
+				//alt: req.body.alt,
+				title: req.body.title,
+				date: Date.now(),
+				bookmarked: false
+		}
+		id++;
+		database.push(picture);
+		return res.status(200).json(picture);
+//	});
+});*/
+//post comment
+router.post("/comment/:photoid", function(req,res){
+	/*let pictureid = parseInt(req.params.photoid, 10);
+	comment = {
+		user: req.body.user,
+		id: req.body.id,
+		text: req.body.text,
+		date: req.body.date
 	}
+	for(let i=0; i<database.length;i++){
+		if(pictureid === database[i].id){
+				database[i].comments.push(comment);
+				return res.status(200).json({message:"successful"});
+		}
+	}*/
 	return res.status(201).json({message:"successful"});
 })
 //add bookmark
@@ -280,27 +448,35 @@ router.put("/settings/:userid",function(req,res){
 	if(!req.body.email) {
         return res.status(400).json({message:"Bad request"});
     }
-	let settings = {
-		userid: userid,
-		firstname: req.body.firstname,
-		lastname: req.body.lastname,
-		email: req.body.email,
-		password: req.body.password,
-		birthday: req.body.birthday,
-		user_icon: req.body.user_icon
-	}
-	for(i=0; i<settingstable.length; i++){
-		if(tempId === settingstable[i].userid){
-			if(req.session.user !== settingstable[i].user){
-                return res.status(409).json({ message: "You are not authorized to edit these settings"});
+	// parse a file upload
+	//const form = Formidable();
+	//form.parse(req, (err, fields, files) => {
+		// Find Cloudinary documentation using the link below
+		// https://cloudinary.com/documentation/upload_images
+		cloudinary.uploader.upload(req.image, result => {
+			console.log(result);
+			let settings = {
+				userid: tempId,
+				firstname: req.body.firstname,
+				lastname: req.body.lastname,
+				email: req.body.email,
+				password: req.body.password,
+				birthday: req.body.birthday,
+				user_icon: result.url
 			}
-			settingstable.splice(i,1, settings);
-			return res.status(200).json({message: "Success!"});
-		}
-	}	
-	return res.status(404).json({message: "not found"}); 
-	
-})
+			for(i=0; i<settingstable.length; i++){
+				if(tempId === settingstable[i].userid){
+					if(req.session.user !== settingstable[i].user){
+						return res.status(409).json({ message: "You are not authorized to edit these settings"});
+					}
+					settingstable.splice(i,1, settings);
+					return res.status(200).json({message: "Success!"});
+				}
+			}	
+			return res.status(404).json({message: "not found"}); 
+		})	
+	})
+//})
 
 //delete user
 /* router.delete("/user/:id",function(req,res)){
@@ -315,6 +491,7 @@ router.delete("/pictures/:id",function(req,res){
             if(req.session.user !== database[i].user){
                 return res.status(409).json({ message: "You are not authorized to remove this item"});
             }
+			//cloudinary.uploader.destroy(database[i].id, function(result) { console.log(result) });
             database.splice(i,1);
             return res.status(200).json({message: "Success!"});
         }
@@ -322,8 +499,9 @@ router.delete("/pictures/:id",function(req,res){
     return res.status(404).json({message: "not found"}); 
 })
 //delete comment
-router.delete("/comments/:id",function(req,res){
-
+router.delete("/comments/:id",function(req,res){	
+	return res.status(200).json({message: "Success!"});
+		
 })
 //unfollow user
 router.delete("/api/follow/:id",function(req,res){
@@ -333,7 +511,6 @@ router.delete("/api/follow/:id",function(req,res){
 router.delete("/api/bookmark/:id",function(req,res){
 
 })
-
 
 
 module.exports = router;

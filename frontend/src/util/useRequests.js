@@ -283,12 +283,15 @@ export const useRequests = () => {
                 method: "POST",
                 mode: "cors",
                 headers: {
-                    "content-type": "application/json",
+                    "content-type": "multipart/form-data",
+                    //"content-type": "application/json",
                     "token": state.token
                 },
-                body: JSON.stringify(item)
+                //body: JSON.stringify(item)
+                body: item
             },
             action: "addimage"
+          
         });
     }
     const deletePicture = (id) => {

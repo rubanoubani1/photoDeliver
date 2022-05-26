@@ -1,12 +1,25 @@
 const SettingsForm = () => {
 
-    const onSubmit = () => {
+    const onSubmit = async (event) => {
+        event.preventDefault();
+        let result = await fetch("/api/settings/3");
+        if(result.ok){
 
+        }else{
+
+        }
     }
-    const onChange = () => {
+    const onChange = (event) => {
+        var selectedFile = event.target.files[0];
+        var reader = new FileReader();
+        var imgtag = document.getElementById("user_picture");
 
+        imgtag.title = selectedFile.name;
+        reader.onload = function(event) {
+            imgtag.src = event.target.result;
+        };   
+        reader.readAsDataURL(selectedFile);
     }
-
     return (
         <form onSubmit={onSubmit} className="mb-3">
             <div style={{display:"flex"}}>
@@ -60,8 +73,8 @@ const SettingsForm = () => {
                 className="form-control"
                 onChange={onChange}
                 ></input>
-            <img src={require("../user_icon.png")} alt="user_icon" style={{width:"64px",height:"64px"}}/>
-            <input type="file" name="user_icon" />
+            <img src={require("../user_icon.png")} id="user_picture" alt="user_icon" style={{width:"64px",height:"64px"}}/>
+            <input type="file" id="user_icon" name="user_icon" onChange={onChange}/>
             <br />
             <input type="submit"
                 className="btn btn-primary"
