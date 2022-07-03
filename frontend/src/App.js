@@ -1,5 +1,5 @@
 import './App.css';
-import {Routes,Route} from 'react-router-dom';
+import {Routes,Route, Navigate} from 'react-router-dom';
 import Home from './components/Home';
 
 import LogIn from './components/LogIn';
@@ -18,16 +18,40 @@ function App() {
 
   const [state, funcs] = useRequests();
 
-  return (
-    <div className="App">
-       <Routes>
-        <Route exact path="/" element={<Home user_id={state.user.id} list={state.list} funcs={funcs}/>} />
-        <Route path="/saved" element={<SavePage user_id={state.user.id} list={state.list} funcs={funcs}/>} />
+  let messageArea = <h4> </h4>
+	if(state.loading) {
+		messageArea = <h4>Loading...</h4>
+	}
+	if(state.error) {
+		messageArea =<h4>{state.error}</h4>
+	}
+
+	
+	let tempRender = <Routes>
+		<Route exact path="/" element={
+			<LogIn   funcs={funcs}/>
+			}/>
+			<Route path="*" element ={<Navigate to="/"/>}/>
+		</Routes>
+
+		if(state.isLogged) {
+		tempRender = <Routes>
+		        <Route exact path="/" element={<Home user_id={state.user.id} list={state.list} funcs={funcs}/>} />
+				 <Route path="/saved" element={<SavePage user_id={state.user.id} list={state.list} funcs={funcs}/>} />
         <Route path="/settings" element={<Settings/>} />
         <Route path="/add" element={<AddPicture funcs={funcs} />} />
-        <Route path="/posts" element={<MyPosts user_id={state.user.id} list={state.list} funcs={funcs}/>} />
+		<Route path="/posts" element={<MyPosts user_id={state.user.id} list={state.list} funcs={funcs}/>} />
         <Route path="/Logout" element={<Logout/>} />
-      </Routes>
+		</Routes>
+		}
+  return (
+
+    <div className="App">
+	
+			{messageArea}
+			<hr/>
+			{tempRender}
+	
     </div>
   );
 }
