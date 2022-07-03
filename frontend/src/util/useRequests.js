@@ -276,23 +276,48 @@ export const useRequests = () => {
         });
     }
 
-    const addPicture = (item) => {
+    const addPicture = async (item) => {
+        //save picture to cloudinary
+   
+        const data = new FormData();
+        console.log(item.file);
+        data.append("file", item.file);
+        data.append("upload_preset",process.env.REACT_APP_PRESET_NAME);
+        data.append("cloud_name",process.env.REACT_APP_CLOUD_NAME );
+        data.append("folder","test-picture-folder");
         setUrlRequest({
             url: "/api/pictures",
             request: {
                 method: "POST",
                 mode: "cors",
                 headers: {
-                    "content-type": "multipart/form-data",
-                    //"content-type": "application/json",
+                    "content-type":"multipart/form-data",
                     "token": state.token
                 },
-                //body: JSON.stringify(item)
-                body: item
+                body: data
             },
             action: "addimage"
-          
         });
+        //console.log(process.env.REACT_APP_CLOUD_NAME);
+       /* 
+        //const url = `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUD_NAME}/image/upload`;
+       
+        const request = {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "content-type": "multipart/form-data",
+            },
+            body:data
+        }
+        try{
+            const resp = await fetch(url,request);  
+            console.log(resp);            
+            //console.log("url:" + resp.data.url +", public_id:" + resp.data.public_id);
+        }catch(err){
+            console.log("errr : ",err);
+        }
+        */
     }
     const deletePicture = (id) => {
         setUrlRequest({

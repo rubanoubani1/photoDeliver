@@ -1,8 +1,6 @@
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
 const express = require("express");
 
-const FileReader = require("filereader");
 require("dotenv").config();
 //library for form data parsing
 //const multer =require("multer"); //can be removed
@@ -233,7 +231,13 @@ router.get("/pictures/:id",function(req,res){
 	}
 	return res.status(404).json({message: "not found"}); 
 })
-router.post('/pictures', function (req, res) {
+router.post('/pictures', function(req, res) {
+	console.log(req.body.);
+	/*
+	cloudinary.uploader.upload(
+		(error, result) => {
+			console.log(result, error);
+	})*/
 	let picture ={				
 		owner: {
 			firstname: "Joe",//req.body.owner.firstname,
@@ -252,7 +256,6 @@ router.post('/pictures', function (req, res) {
 	console.log(req);
 	id++;
 	database.push(picture);
-    console.log(result);
 	return res.status(200).json(picture);
 });
 /*

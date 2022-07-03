@@ -5,13 +5,15 @@ const PictureForm = (props) => {
 
     const [state, setState] = useState({
         title:"",
+        public_id: "",
         description:"",
-        image:null
+        image:null,
+        file:null
     })
 
     const onSubmit = (event) => {
         event.preventDefault();
-        props.funcs.addPicture(state)
+        props.funcs.addPicture(state);
     }
 
     const onChange = (event) => {
@@ -30,6 +32,15 @@ const PictureForm = (props) => {
             return {
                 ...state,
                 image: image
+            }
+        })
+    }
+    const setFile = (file) => {
+        setState((state) => {
+            console.log(state);
+            return {
+                ...state,
+                file: file
             }
         })
     }
@@ -56,7 +67,7 @@ const PictureForm = (props) => {
                 onChange={onChange}
                 value={state.description}></input>
             
-            <ImageUploader image={state.image} setImage={setImage}/>
+            <ImageUploader image={state.image} setImage={setImage} setFile={setFile}/>
 
             <input type="submit"
                 className="btn btn-primary"
