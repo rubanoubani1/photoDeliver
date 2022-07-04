@@ -275,8 +275,8 @@ app.post("/logout",function(req,res) {
 })
 
 
-app.use("/api",isUserLogged,apiroutes);
-
+//app.use("/api",isUserLogged,apiroutes);
+app.use("/api",apiroutes);
 app.listen(port);
 
 console.log("Runnning on port ", port);

@@ -297,13 +297,31 @@ export const useRequests = () => {
 
     const addPicture = async (item) => {
         //save picture to cloudinary
-   
-        const data = new FormData();
-        console.log(item.file);
-        data.append("file", item.file);
-        data.append("upload_preset",process.env.REACT_APP_PRESET_NAME);
-        data.append("cloud_name",process.env.REACT_APP_CLOUD_NAME );
-        data.append("folder","test-picture-folder");
+       
+        const formData = new FormData();
+        formData.append("file", item.file);
+        //formData.append("api_key", process.env.REACT_APP_API_KEY);
+        //formData.append("eager", "c_pad,h_300,w_400|c_crop,h_200,w_260");
+        //formData.append("folder", "upload_test");
+        //console.log(item.file);
+        //data.append("file", item.file);
+        //data.append("upload_preset",process.env.REACT_APP_PRESET_NAME);
+        //data.append("cloud_name",process.env.REACT_APP_CLOUD_NAME );
+        //data.append("folder","test-picture-folder");
+        /*
+        setUrlRequest({
+            url: "https://api.cloudinary.com/v1_1/"+process.env.REACT_APP_CLOUD_NAME+"/image/upload",
+            request: {
+                method: "POST",
+                //mode: "cors",
+                headers: {
+                    "content-type":"multipart/form-data",
+                },
+                body: formData
+            },
+            action: "addimage"
+        });*/
+        /*
         setUrlRequest({
             url: "/api/pictures",
             request: {
@@ -313,10 +331,11 @@ export const useRequests = () => {
                     "content-type":"multipart/form-data",
                     "token": state.token
                 },
-                body: data
+                body: formData
             },
             action: "addimage"
-        });
+        });*/
+
         //console.log(process.env.REACT_APP_CLOUD_NAME);
        /* 
         //const url = `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUD_NAME}/image/upload`;

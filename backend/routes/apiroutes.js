@@ -232,8 +232,10 @@ router.get("/pictures/:id",function(req,res){
 	return res.status(404).json({message: "not found"}); 
 })
 router.post('/pictures', function(req, res) {
-	console.log(req.body.);
+	console.log(req.body);
 	/*
+	cloudinary.v2.uploader.upload(req.body.file, options, callback);
+
 	cloudinary.uploader.upload(
 		(error, result) => {
 			console.log(result, error);
@@ -253,7 +255,7 @@ router.post('/pictures', function(req, res) {
 		date: Date.now(),
 		bookmarked: false
 	}
-	console.log(req);
+	//console.log(req);
 	id++;
 	database.push(picture);
 	return res.status(200).json(picture);
