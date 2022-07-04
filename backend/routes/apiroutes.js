@@ -299,8 +299,16 @@ router.post("/pictures",function(req,res){
 		}
 		let tags = req.body.description.split(/(\s+)/).filter((token)=>{
 			return token.startsWith("#")
+		}).map((tag)=>{
+			return {tag:tag}
 		})
+		tagModel.insertMany(tags, {ordered:false}, function(err, docs){
+			if(err){
+				console.log("error inserting tags: "+err);
+			}
+		});
 		picture.owner = user;
+		picture.tags = tags;
 		picture.comments = [];
 		picture.bookmarkedBy = [];
 		let pictureM = new pictureModel(picture);
