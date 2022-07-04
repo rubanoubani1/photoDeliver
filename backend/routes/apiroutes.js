@@ -5,6 +5,7 @@ const { commentModel } = require("../models/comment");
 const tagModel = require("../models/tag");
 const notificationModel = require("../models/notification");
 const userModel = require("../models/user");
+const comment = require("../models/comment");
 
 router = express.Router();
 
@@ -176,18 +177,10 @@ router.get("/pictures",function(req,res) {
 		}
 		return res.status(200).json(pictures);
 	});
-    //return res.status(200).json(database);
 })
+
 //get own images / get images of user
 router.get("/user/pictures/:user",function(req,res){
-	/*let userid = parseInt(req.params.user, 10);
-	let tempdatabase = [];
-	for(let i=0; i<database.length;i++){
-		if(userid === database[i].owner.id && database[i].bookmarked === false){
-				tempdatabase.push(database[i]);
-		}
-	}
-	return res.status(200).json(tempdatabase);*/
 	let query = { "owner": req.params.user };
 	pictureModel.find(query, function (err, pictures) {
 		if (err) {
@@ -197,6 +190,7 @@ router.get("/user/pictures/:user",function(req,res){
 		return res.status(200).json(pictures);
 	});
 })
+
 //get images that user has bookmarked
 router.get("/user/bookmarks/:user",function(req,res){
 	let userquery = { "user": req.params.user };
@@ -215,27 +209,21 @@ router.get("/user/bookmarks/:user",function(req,res){
 			return res.status(200).json(pictures);
 		});
 	});
-	/*let userid = parseInt(req.params.user, 10);
-	let tempdatabase = [];
-	for(let i=0; i<database.length;i++){
-		if(userid === database[i].owner.id && database[i].bookmarked === true){
-				tempdatabase.push(database[i]);
-		}
-	}
-	return res.status(200).json(tempdatabase);*/
 })
+
 //get comments of an image
 router.get("/pictures/:id/comments",function(req,res){
-	let pictureid = parseInt(req.params.id, 10);
-	comments= [];
-	for(let i=0; i<database.length;i++){
-		if(pictureid === database[i].id){
-				comments=database[i].comments;
-				return res.status(200).json(comments);
+	let query = { "_id": req.params.id };
+	pictureModel.findOne(query, function (err, picture) {
+		if (err) {
+			console.log("error querying comments, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
 		}
-	}
-	return res.status(404).json({message: "not found"}); 
+		return res.status(200).json(picture.comments);
+	})
+
 })
+
 //get an image
 router.get("/pictures/:id",function(req,res){
 	let query = { "_id": req.params.id };
@@ -245,24 +233,17 @@ router.get("/pictures/:id",function(req,res){
 			return res.status(500).json({ message: "internal server error" });
 		}
 		//if(picture)
-		return res.status(200).json(pictures);
+		return res.status(200).json(picture);
 	});
-	/*let pictureid = parseInt(req.params.id, 10);
-	let picture = {};
-	for(let i=0; i<database.length;i++){
-		if(pictureid === database[i].id){
-				picture=database[i];
-				return res.status(200).json(picture);
-		}
-	}
-	return res.status(404).json({message: "not found"}); */
+	
 })
+
 //post image
 router.post("/pictures",function(req,res){
 	if(!req.body) {
         return res.status(400).json({ message:"Bad request"});
     }
-	let owner = {}
+	/*let owner = {}
 	if(req.body.owner){
 		owner = {
 			firstname: req.body.owner.firstname,
@@ -271,25 +252,15 @@ router.post("/pictures",function(req,res){
 			urlsafe: req.body.owner.urlsafe,
 			profilePictureUrl: req.body.owner.profilePictureUrl
 		}
-	}
-    let tempicture = { 
-        id:id,
-        owner:req.session.userid,
-        url:req.body.url,
-		title:req.body.title,
-        description:req.body.description,
-		tags:request.body.tags,
-        date:req.body.date
-    }
+	}*/
 	let picture = {
-		owner: owner,
+		//owner: owner,
 		url: req.body.url,
 		id: id,
 		alt: req.body.alt,
 		title: req.body.title,
-		date: req.body.date,
+		//date: req.body.date,
 		comments: req.body.comments,
-		bookmarked: false
 	}
 	let userquery = { "user": req.session.user };
 	userModel.findOne(userquery, function (err, user) {
@@ -321,37 +292,52 @@ router.post("/pictures",function(req,res){
 		})
 	});
 	
-    id++;
+    /*id++;
     database.push(picture);
-    return res.status(200).json(picture);
+    return res.status(200).json(picture);*/
 })
+
 //post comment
 router.post("/comment/:photoid", function(req,res){
-	let pictureid = parseInt(req.params.photoid, 10);
-	comment = {
-		user: req.body.user,
-		id: req.body.id,
-		text: req.body.text,
-		date: req.body.date
+	if (!req.body || !req.body.text) {
+		return res.status(400).json({ message: "Bad request" });
 	}
-	for(let i=0; i<database.length;i++){
-		if(pictureid === database[i].id){
-				database[i].comments.push(comment);
-				return res.status(200).json({message:"successful"});
-		}
-	}
-	return res.status(201).json({message:"successful"});
+	let userquery = { "user": req.session.user };
+	userModel.findOne(userquery, function (err, user) {
+		comment = new commentModel({
+			user: req.body.user,
+			text: req.body.text,
+		});
+		comment.save(function (err) {
+			if (err) {
+				console.log("failed to save comment, err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			return res.status(201).json({ message: "success" });
+		})
+
+		let query = { "_id": photoid };
+		let update = { "$push": { comments: comment } }
+		pictureModel.updateOne(query, update);
+	});
 })
+
 //add bookmark
 router.post("/bookmark/:id",  function(req,res){
 	return res.status(200).json({message:"successful"});
 })
+
 //follow user
 router.post("/follow/:id", function(req,res){
 	return res.status(200).json({message:"successful"});
 })
+
 //edit user settings
 router.put("/settings/:userid",function(req,res){
+	if (!req.body) {
+		return res.status(400).json({ message: "Bad request" });
+	}
+	
 	let tempId = parseInt(req.params.userid, 10);
 
     if(!req.body) {
@@ -401,14 +387,17 @@ router.delete("/pictures/:id",function(req,res){
     }
     return res.status(404).json({message: "not found"}); 
 })
+
 //delete comment
 router.delete("/comments/:id",function(req,res){
 
 })
+
 //unfollow user
 router.delete("/api/follow/:id",function(req,res){
 
 })
+
 //remove bookmark
 router.delete("/api/bookmark/:id",function(req,res){
 
