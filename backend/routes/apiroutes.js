@@ -1,4 +1,4 @@
-const { request, text } = require("express");
+//const { request, text } = require("express");
 const express = require("express");
 const pictureModel = require("../models/picture");
 const { commentModel } = require("../models/comment");
@@ -10,7 +10,7 @@ const comment = require("../models/comment");
 router = express.Router();
 
 //DATABASE
-const database = [
+/*const database = [
 	{
 		owner: {
 			firstname: "John",
@@ -133,13 +133,16 @@ const database = [
 		],
 		bookmarked: false
 	}
-];
-const settingstable =[]
-const userdatabase =[];
+];*/
+/*const userdatabase =[];
 let testuser = {
 	email:'user@user.com',
 	password:'user123'
 }
+userdatabase.push(testuser);*/
+
+const settingstable =[]
+
 let usersetting1 = {
 	userid: 2,
 	firstname: "Matti",
@@ -161,9 +164,8 @@ let usersetting2 = {
 settingstable.push(usersetting1);
 settingstable.push(usersetting2);
 
-userdatabase.push(testuser);
 
-let id = 100;
+//let id = 100;
 
 //REST API
 
@@ -181,7 +183,7 @@ router.get("/pictures",function(req,res) {
 
 //get own images / get images of user
 router.get("/user/:user/pictures",function(req,res){
-	let query = { "owner": req.session.user };
+	let query = { "owner": req.session.userid };
 	pictureModel.find(query, function (err, pictures) {
 		if (err) {
 			console.log("error querying pictures, err: " + err);
@@ -193,7 +195,7 @@ router.get("/user/:user/pictures",function(req,res){
 
 //get images that user has bookmarked
 router.get("/user/:user/bookmarks",function(req,res){
-	let userquery = { "user": req.session.user };
+	let userquery = { "_id": req.session.userid };
 	userModel.findOne(userquery, function (err, user) {
 		if (err) {
 			console.log("error querying user "+req.session.user+", err: " + err);
@@ -256,13 +258,13 @@ router.post("/pictures",function(req,res){
 	let picture = {
 		//owner: owner,
 		url: req.body.url,
-		id: id,
+		//id: id,
 		alt: req.body.alt,
 		title: req.body.title,
 		//date: req.body.date,
 		comments: req.body.comments,
 	}
-	let userquery = { "user": req.session.user };
+	let userquery = { "_id": req.session.userid };
 	userModel.findOne(userquery, function (err, user) {
 		if (err) {
 			console.log("error querying user " + req.session.user + ", err: " + err);
@@ -302,10 +304,10 @@ router.post("/pictures/:photoid/comment", function(req,res){
 	if (!req.body || !req.body.text) {
 		return res.status(400).json({ message: "Bad request" });
 	}
-	let userquery = { "user": req.session.user };
+	let userquery = { "_id": req.session.userid };
 	userModel.findOne(userquery, function (err, user) {
 		comment = new commentModel({
-			user: req.body.user,
+			owner: req.session.userid,
 			text: req.body.text,
 		});
 		comment.save(function (err) {
@@ -328,9 +330,9 @@ router.post("/pictures/:photoid/comment", function(req,res){
 })
 
 //add bookmark
-router.post("/pictures/:id/bookmark",  function(req,res){
+router.put("/pictures/:id/mark",  function(req,res){
 	let query = { "_id": req.params.id };
-	let update = { "$push": { bookmarkedBy: req.session.user } }
+	let update = { "$push": { bookmarkedBy: req.session.userid } }
 	pictureModel.updateOne(query, update, function (err) {
 		if (err) {
 			console.log("failed to add bookmark, err: " + err);
@@ -341,11 +343,11 @@ router.post("/pictures/:id/bookmark",  function(req,res){
 })
 
 //follow user
-router.post("/users/:id/follow", function (req, res) {
+router.put("/users/:id/follow", function (req, res) {
 	let toBeFollowed = { "_id": req.params.id };
-	let currentUser = { "_id": req.session.user };
+	let currentUser = { "_id": req.session.userid };
 	let follow = { "$push": { following: req.params.id } };
-	let addFollower = { "$push": { followers: req.session.user } };
+	let addFollower = { "$push": { followers: req.session.userid } };
 	userModel.updateOne(toBeFollowed, addFollower);
 	userModel.updateOne(currentUser, follow, function (err) {
 		if (err) {
@@ -400,7 +402,7 @@ router.put("/settings/:userid",function(req,res){
 
 //delete own picture
 router.delete("/pictures/:id",function(req,res){
-	pictureModel.deleteOne({ "_id": req.params.id, "user": req.session.user }, function (err, results) {
+	pictureModel.deleteOne({ "_id": req.params.id, "owner": req.session.userid }, function (err, results) {
 		if (err) {
 			console.log("failed to remove item. err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -434,10 +436,10 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 			return res.status(500).json({ message: "internal server error" });
 		}
 		let query = { "_id": req.params.id };
-		if (picture.owner._id !== req.session.user) {
+		if (picture.owner !== req.session.userid) {
 			query = { 
 				...query,
-				"user": req.session.user 
+				"owner": req.session.userid
 			}
 		}
 		commentModel.deleteOne(query, function (err, results) {
@@ -467,9 +469,9 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 })
 
 //unfollow user
-router.delete("/users/:id/following/:userid",function(req,res){
+router.put("/users/:id/unfollow",function(req,res){
 	let toBeUnfollowed = { "_id": req.params.id };
-	let currentUser = { "_id": req.session.user };
+	let currentUser = { "_id": req.session.userid };
 	let unfollow = { "$pull": { following: {$in:[req.params.id]} } };
 	let removeFollower = { "$pull": { followers: {$in:[req.session.user]} } };
 	userModel.updateOne(toBeUnfollowed, removeFollower,function(err){
@@ -489,9 +491,9 @@ router.delete("/users/:id/following/:userid",function(req,res){
 })
 
 //remove bookmark
-router.delete("/pictures/:id/bookmarks/:userid",function(req,res){
+router.put("/pictures/:id/unmark",function(req,res){
 	let query = { "_id": req.params.id };
-	let update = { "$pull": { bookmarkedBy: {"$in":[req.session.user]} } }
+	let update = { "$pull": { bookmarkedBy: {"$in":[req.session.userid]} } }
 	pictureModel.updateOne(query, update, function (err) {
 		if (err) {
 			console.log("failed to add bookmark, err: " + err);

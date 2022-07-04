@@ -59,6 +59,7 @@ isUserLogged = (req,res,next)=>{
 		} else {
 			req.session = {};
 			req.session.user = session.user;
+			req.session.userid = session.userid;
 			session.ttl = now + time_to_live_diff;
 			session.save(function (err) {
 				if (err) {
@@ -86,14 +87,17 @@ app.post("/register", function(req,res) {
 	if(req.body.username.length<4|| req.body.password.length<8) {
 		return res.status(400).json({message:"Please provide proper credentails"});
 	}
+
+	let salt = createToken()
 	
-	bcrypt.hash(req.body.password, 14, function (err, hash) {
+	bcrypt.hash(req.body.password+salt, 14, function (err, hash) {
 		if (err) {
 			return res.status(500).json({ message: "internal server error" });
 		}
 		let user = new userModel({
 			username: req.body.username,
-			password: hash
+			password: hash,
+			salt: salt,
 		});
 		let userdata = new userdataModel({
 			user: req.body.username,
@@ -110,7 +114,7 @@ app.post("/register", function(req,res) {
 			if (err) {
 				console.log("Failed to save new user, error: " + err);
 				if (err.code === 11000) {
-					return res.status(409).json({ message: "username alreasy in use" });
+					return res.status(409).json({ message: "username already in use" });
 				}
 				return res.status(500).json({ message: "internal server error" });
 			}
@@ -118,7 +122,7 @@ app.post("/register", function(req,res) {
 				if (err) {
 					console.log("Failed to save new user, error: " + err);
 					if (err.code === 11000) {
-						return res.status(409).json({ message: "username alreasy in use" });
+						return res.status(409).json({ message: "username already in use" });
 					}
 					return res.status(500).json({ message: "internal server error" });
 				}
@@ -149,10 +153,12 @@ app.post("/login", function(req,res) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		if (!user) {
-			//TODO: wait 2 seconds for safety
-			return res.status(401).json({ message: "unauthorized" });
+			var millisToWait = 2000;
+			setTimeout(function () {
+				return res.status(401).json({ message: "unauthorized" });
+			}, millisToWait);
 		}
-		bcrypt.compare(req.body.password, user.password, function (err, success) {
+		bcrypt.compare(req.body.password+user.salt, user.password, function (err, success) {
 			if (err) {
 				console.log("Error comparing passwrds, err: " + err);
 				return res.status(500).json({ message: "Internal server error" });
@@ -163,9 +169,10 @@ app.post("/login", function(req,res) {
 			const token = createToken();
 			let now = Date.now();
 			let session = new sessionModel({
-				user: req.body.username,
+				user: user.username,
+				userid: user.userid,
 				ttl: now + time_to_live_diff,
-				token: token
+				token: token,
 			});
 			session.save(function (err) {
 				if (err) {
