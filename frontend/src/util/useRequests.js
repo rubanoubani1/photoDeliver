@@ -321,20 +321,20 @@ export const useRequests = () => {
             },
             action: "addimage"
         });*/
-        /*
+        
         setUrlRequest({
             url: "/api/pictures",
             request: {
                 method: "POST",
                 mode: "cors",
                 headers: {
-                    "content-type":"multipart/form-data",
+                    //"content-type":"multipart/form-data",
                     "token": state.token
                 },
                 body: formData
             },
             action: "addimage"
-        });*/
+        });
 
         //console.log(process.env.REACT_APP_CLOUD_NAME);
        /* 

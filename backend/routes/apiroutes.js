@@ -3,11 +3,14 @@ const express = require("express");
 
 require("dotenv").config();
 //library for form data parsing
-//const multer =require("multer"); //can be removed
+//const multer = require("multer");
+//const upload = multer();
+const fileUpload = require("express-fileupload");
+
 //const fileUpload = multer(); //can be removed
 //const FileReader = require("filereader");  //can be removed
 //const streamifier = require("streamifier"); //can be removed
-//const formidable = require("formidable"); //can be removed
+//const formidable = require("formidable");
 //cloudinary api for uploading images
 const cloudinary = require("cloudinary").v2;
 // cloudinary configuration
@@ -20,7 +23,7 @@ cloudinary.config({
 
 var router = express.Router();
 
-
+router.use(fileUpload({ useTempFiles : true }));
 
 
 //DATABASE
@@ -232,10 +235,10 @@ router.get("/pictures/:id",function(req,res){
 	return res.status(404).json({message: "not found"}); 
 })
 router.post('/pictures', function(req, res) {
-	console.log(req.body);
+	console.log(req.files.file);
+	cloudinary.uploader.upload(req.files.file.tempFilePath, function(error, result) {console.log(result, error); });
+	//cloudinary.v2.uploader.upload(req.file, options, callback);
 	/*
-	cloudinary.v2.uploader.upload(req.body.file, options, callback);
-
 	cloudinary.uploader.upload(
 		(error, result) => {
 			console.log(result, error);

@@ -16,6 +16,7 @@ const ImageUploader = (props) => {
             //console.log(URL.createObjectURL(files[0]));
             props.setImage(URL.createObjectURL(files[0]));
             props.setFile(files[0]);
+           
         }
     }
 
