@@ -6,7 +6,7 @@ const schema = mongoose.Schema({
     urlsafe: { unique: true, type: String },
     firstname: String,
     lastname: String,
-    profilePictureUrl: String,
+    userIconUrl: String,
     bio: String,
     following: [String], //user ids for filtering by followed people
     followers: [String], //user ids for sending notifications

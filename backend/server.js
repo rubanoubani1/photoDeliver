@@ -29,8 +29,8 @@ mongoose.connect(connection_url).then(
 
 mongoose.set("toJSON", { virtuals: true });
 
-const createToken=() =>{
-	let token = crypto.randomBytes(128);
+const createToken = (bytes) =>{
+	let token = crypto.randomBytes(bytes);
 	return token.toString("hex");
 }
 
@@ -88,27 +88,20 @@ app.post("/register", function(req,res) {
 		return res.status(400).json({message:"Please provide proper credentails"});
 	}
 
-	let salt = createToken()
+	let salt = createToken(16)
 	
 	bcrypt.hash(req.body.password+salt, 14, function (err, hash) {
 		if (err) {
 			return res.status(500).json({ message: "internal server error" });
 		}
-		let user = new userModel({
-			username: req.body.username,
-			password: hash,
-			salt: salt,
-		});
+		
 		let userdata = new userdataModel({
 			user: req.body.username,
 			urlsafe: req.body.username,
 			firstname: "",
 			lastname: "",
-			profilePictureUrl: "",
+			userIconUrl: "",
 			bio: "",
-			following: [],
-			followed: [],
-			bookmarked: []
 		});
 		userdata.save(function (err, userdata) {
 			if (err) {
@@ -118,6 +111,13 @@ app.post("/register", function(req,res) {
 				}
 				return res.status(500).json({ message: "internal server error" });
 			}
+			let user = new userModel({
+				userid: userdata._id,
+				username: req.body.username,
+				hash: hash,
+				salt: salt,
+				version: 0,
+			});
 			user.save(function (err, user) {
 				if (err) {
 					console.log("Failed to save new user, error: " + err);
@@ -153,12 +153,12 @@ app.post("/login", function(req,res) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		if (!user) {
-			var millisToWait = 2000;
+			let millisToWait = 2022;
 			setTimeout(function () {
 				return res.status(401).json({ message: "unauthorized" });
 			}, millisToWait);
 		}
-		bcrypt.compare(req.body.password+user.salt, user.password, function (err, success) {
+		bcrypt.compare(req.body.password+user.salt, user.hash, function (err, success) {
 			if (err) {
 				console.log("Error comparing passwrds, err: " + err);
 				return res.status(500).json({ message: "Internal server error" });
@@ -166,7 +166,7 @@ app.post("/login", function(req,res) {
 			if (!success) {
 				return res.status(401).json({ message: "unauthorized" });
 			}
-			const token = createToken();
+			const token = createToken(128);
 			let now = Date.now();
 			let session = new sessionModel({
 				user: user.username,

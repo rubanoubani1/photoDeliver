@@ -5,7 +5,6 @@ const { commentModel } = require("../models/comment");
 const tagModel = require("../models/tag");
 const notificationModel = require("../models/notification");
 const userModel = require("../models/user");
-const comment = require("../models/comment");
 
 router = express.Router();
 
@@ -167,6 +166,44 @@ settingstable.push(usersetting2);
 
 //let id = 100;
 
+//returns mapping from user ids to user data
+const getUserData = (userids, callback) => {
+	let query = {"_id":{"$in":userids}};
+	userModel.find(query, function (err, users) {
+		if (err) {
+			console.log("error querying items, err: " + err);
+			return callback({ error: "internal server error" },undefined)//res.status(500).json({ message: "internal server error" });
+		} 
+		let userDataDict = userids
+		users.forEach(user => {
+			userDataDict[user._id] = user;
+		});
+		callback(undefined, userDataDict);
+	});
+}
+
+async function addUserData(pictures, callback){
+	let users = {};
+	pictures.forEach(picture => {
+		users[picture.owner] = picture.owner;
+		picture.comments.forEach(comment => {
+			users[comment.owner] = comment.owner;
+		})
+	});
+	getUserData(Object.keys(users), (err, userData)=>{
+		if(err){
+			callback(err, undefined);
+		}
+		pictures.forEach(picture => {
+			picture.owner = userData[picture.owner];
+			picture.comments.forEach(comment => {
+				comment.owner = userData[comment.owner];
+			})
+		});
+		callback(undefined, pictures);
+	});
+}
+
 //REST API
 
 //get images
@@ -177,7 +214,13 @@ router.get("/pictures",function(req,res) {
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		return res.status(200).json(pictures);
+		addUserData(pictures, (err, pics) => {
+			if (err){
+				console.log("error querying items, err: "+err);
+				return res.status(500).json({message:"internal server error"});
+			} 
+			return res.status(200).json(pics);
+		});
 	});
 })
 
@@ -189,7 +232,13 @@ router.get("/user/:user/pictures",function(req,res){
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		return res.status(200).json(pictures);
+		addUserData(pictures, (err, pics) => {
+			if (err){
+				console.log("error querying items, err: "+err);
+				return res.status(500).json({message:"internal server error"});
+			} 
+			return res.status(200).json(pics);
+		});
 	});
 })
 
@@ -208,7 +257,13 @@ router.get("/user/:user/bookmarks",function(req,res){
 				console.log("error querying pictures, err: " + err);
 				return res.status(500).json({ message: "internal server error" });
 			}
-			return res.status(200).json(pictures);
+			addUserData(pictures, (err, pics) => {
+				if (err){
+					console.log("error querying items, err: "+err);
+					return res.status(500).json({message:"internal server error"});
+				} 
+				return res.status(200).json(pics);
+			});
 		});
 	});
 })
@@ -242,7 +297,7 @@ router.get("/pictures/:id",function(req,res){
 
 //post image
 router.post("/pictures",function(req,res){
-	if(!req.body) {
+	if(!req.body | !req.body.url ) {
         return res.status(400).json({ message:"Bad request"});
     }
 	/*let owner = {}
@@ -270,6 +325,9 @@ router.post("/pictures",function(req,res){
 			console.log("error querying user " + req.session.user + ", err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
+		if (!req.body.description){
+			req.body.description = "";
+		}
 		let tags = req.body.description.split(/(\s+)/).filter((token)=>{
 			return token.startsWith("#")
 		}).map((tag)=>{
@@ -280,7 +338,7 @@ router.post("/pictures",function(req,res){
 				console.log("error inserting tags: "+err);
 			}
 		});
-		picture.owner = user;
+		picture.owner = user._id;
 		picture.tags = tags;
 		picture.comments = [];
 		picture.bookmarkedBy = [];
@@ -300,13 +358,13 @@ router.post("/pictures",function(req,res){
 })
 
 //post comment
-router.post("/pictures/:photoid/comment", function(req,res){
+router.post("/pictures/:photoid/comments", function(req,res){
 	if (!req.body || !req.body.text) {
 		return res.status(400).json({ message: "Bad request" });
 	}
 	let userquery = { "_id": req.session.userid };
 	userModel.findOne(userquery, function (err, user) {
-		comment = new commentModel({
+		let comment = new commentModel({
 			owner: req.session.userid,
 			text: req.body.text,
 		});
