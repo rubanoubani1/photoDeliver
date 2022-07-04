@@ -313,28 +313,52 @@ router.post("/comment/:photoid", function(req,res){
 				console.log("failed to save comment, err: " + err);
 				return res.status(500).json({ message: "internal server error" });
 			}
-			return res.status(201).json({ message: "success" });
 		})
 
-		let query = { "_id": photoid };
+		let query = { "_id": req.params.photoid };
 		let update = { "$push": { comments: comment } }
-		pictureModel.updateOne(query, update);
+		pictureModel.updateOne(query, update, function(err){
+			if (err) {
+				console.log("failed to update picture comments, err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			return res.status(201).json({ message: "success" });
+		});
 	});
 })
 
 //add bookmark
 router.post("/bookmark/:id",  function(req,res){
-	return res.status(200).json({message:"successful"});
+	let query = { "_id": req.params.id };
+	let update = { "$push": { bookmarkedBy: req.params.user } }
+	pictureModel.updateOne(query, update, function (err) {
+		if (err) {
+			console.log("failed to add bookmark, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		return res.status(201).json({ message: "success" });
+	});
 })
 
 //follow user
-router.post("/follow/:id", function(req,res){
-	return res.status(200).json({message:"successful"});
+router.post("/follow/:id", function (req, res) {
+	let toBeFollowed = { "_id": req.params.id };
+	let currentUser = { "_id": req.params.id };
+	let follow = { "$push": { following: req.params.id } };
+	let addFollower = { "$push": { followers: req.params.user } };
+	userModel.updateOne(toBeFollowed, addFollower);
+	userModel.updateOne(currentUser, follow, function (err) {
+		if (err) {
+			console.log("failed to follow user, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		return res.status(201).json({ message: "success" });
+	});
 })
 
 //edit user settings
 router.put("/settings/:userid",function(req,res){
-	if (!req.body) {
+	if (!req.body || !req.body.email ) {
 		return res.status(400).json({ message: "Bad request" });
 	}
 	
@@ -347,7 +371,7 @@ router.put("/settings/:userid",function(req,res){
         return res.status(400).json({message:"Bad request"});
     }
 	let settings = {
-		userid: userid,
+		userid: req.params.userid,
 		firstname: req.body.firstname,
 		lastname: req.body.lastname,
 		email: req.body.email,
