@@ -468,12 +468,37 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 
 //unfollow user
 router.delete("/users/:id/following/:userid",function(req,res){
-
+	let toBeUnfollowed = { "_id": req.params.id };
+	let currentUser = { "_id": req.session.user };
+	let unfollow = { "$pull": { following: {$in:[req.params.id]} } };
+	let removeFollower = { "$pull": { followers: {$in:[req.session.user]} } };
+	userModel.updateOne(toBeUnfollowed, removeFollower,function(err){
+		if (err) {
+			console.log("failed to unfollow user, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		userModel.updateOne(currentUser, unfollow, function (err) {
+			if (err) {
+				console.log("failed to unfollow user, err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			return res.status(201).json({ message: "success" });
+		});
+	});
+	
 })
 
 //remove bookmark
 router.delete("/pictures/:id/bookmarks/:userid",function(req,res){
-
+	let query = { "_id": req.params.id };
+	let update = { "$pull": { bookmarkedBy: {"$in":[req.session.user]} } }
+	pictureModel.updateOne(query, update, function (err) {
+		if (err) {
+			console.log("failed to add bookmark, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		return res.status(201).json({ message: "success" });
+	});
 })
 
 
