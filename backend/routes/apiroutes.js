@@ -180,8 +180,8 @@ router.get("/pictures",function(req,res) {
 })
 
 //get own images / get images of user
-router.get("/user/pictures/:user",function(req,res){
-	let query = { "owner": req.params.user };
+router.get("/user/:user/pictures",function(req,res){
+	let query = { "owner": req.session.user };
 	pictureModel.find(query, function (err, pictures) {
 		if (err) {
 			console.log("error querying pictures, err: " + err);
@@ -192,11 +192,11 @@ router.get("/user/pictures/:user",function(req,res){
 })
 
 //get images that user has bookmarked
-router.get("/user/bookmarks/:user",function(req,res){
-	let userquery = { "user": req.params.user };
+router.get("/user/:user/bookmarks",function(req,res){
+	let userquery = { "user": req.session.user };
 	userModel.findOne(userquery, function (err, user) {
 		if (err) {
-			console.log("error querying user "+req.params.user+", err: " + err);
+			console.log("error querying user "+req.session.user+", err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
 		//TODO: check that the user.bookmarked and pictures have ids that can be queried
@@ -265,7 +265,7 @@ router.post("/pictures",function(req,res){
 	let userquery = { "user": req.session.user };
 	userModel.findOne(userquery, function (err, user) {
 		if (err) {
-			console.log("error querying user " + req.params.user + ", err: " + err);
+			console.log("error querying user " + req.session.user + ", err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
 		let tags = req.body.description.split(/(\s+)/).filter((token)=>{
@@ -298,7 +298,7 @@ router.post("/pictures",function(req,res){
 })
 
 //post comment
-router.post("/comment/:photoid", function(req,res){
+router.post("/pictures/:photoid/comment", function(req,res){
 	if (!req.body || !req.body.text) {
 		return res.status(400).json({ message: "Bad request" });
 	}
@@ -328,9 +328,9 @@ router.post("/comment/:photoid", function(req,res){
 })
 
 //add bookmark
-router.post("/bookmark/:id",  function(req,res){
+router.post("/pictures/:id/bookmark",  function(req,res){
 	let query = { "_id": req.params.id };
-	let update = { "$push": { bookmarkedBy: req.params.user } }
+	let update = { "$push": { bookmarkedBy: req.session.user } }
 	pictureModel.updateOne(query, update, function (err) {
 		if (err) {
 			console.log("failed to add bookmark, err: " + err);
@@ -341,11 +341,11 @@ router.post("/bookmark/:id",  function(req,res){
 })
 
 //follow user
-router.post("/follow/:id", function (req, res) {
+router.post("/users/:id/follow", function (req, res) {
 	let toBeFollowed = { "_id": req.params.id };
-	let currentUser = { "_id": req.params.id };
+	let currentUser = { "_id": req.session.user };
 	let follow = { "$push": { following: req.params.id } };
-	let addFollower = { "$push": { followers: req.params.user } };
+	let addFollower = { "$push": { followers: req.session.user } };
 	userModel.updateOne(toBeFollowed, addFollower);
 	userModel.updateOne(currentUser, follow, function (err) {
 		if (err) {
@@ -361,6 +361,7 @@ router.put("/settings/:userid",function(req,res){
 	if (!req.body || !req.body.email ) {
 		return res.status(400).json({ message: "Bad request" });
 	}
+	//TODO: add settings to mongo
 	
 	let tempId = parseInt(req.params.userid, 10);
 
@@ -399,6 +400,18 @@ router.put("/settings/:userid",function(req,res){
 
 //delete own picture
 router.delete("/pictures/:id",function(req,res){
+	pictureModel.deleteOne({ "_id": req.params.id, "user": req.session.user }, function (err, results) {
+		if (err) {
+			console.log("failed to remove item. err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		/*if(results.numberDeleted===0){
+			return res.status(404).json({message:"not found"})
+		}*/
+		return res.status(200).json({ message: "success" });
+	});
+
+	/*
 	let tempId = parseInt(req.params.id, 10);
     for(let i = 0; i < database.length; i++){
         if(tempId === database[i].id){
@@ -410,20 +423,56 @@ router.delete("/pictures/:id",function(req,res){
         }
     }
     return res.status(404).json({message: "not found"}); 
+	*/
 })
 
 //delete comment
-router.delete("/comments/:id",function(req,res){
-
+router.delete("/pictures/:pictureid/comments/:id",function(req,res){
+	pictureModel.findById(req.params.pictureid, function(err, picture){
+		if (err) {
+			console.log("failed to find picture to delete comment from. err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		let query = { "_id": req.params.id };
+		if (picture.owner._id !== req.session.user) {
+			query = { 
+				...query,
+				"user": req.session.user 
+			}
+		}
+		commentModel.deleteOne(query, function (err, results) {
+			if (err) {
+				console.log("failed to remove item. err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			/*if(results.numberDeleted===0){
+				return res.status(404).json({message:"not found"})
+			}*/
+			pictureModel.findByIdAndUpdate(
+				req.params.pictureid, 
+				{"$pull":{comments: {"_id":req.params.id}}},
+				function(err, results){
+					if (err) {
+						console.log("failed to remove item. err: " + err);
+						return res.status(500).json({ message: "internal server error" });
+					}
+					/*if(results.numberDeleted===0){
+						return res.status(404).json({message:"not found"})
+					}*/
+					return res.status(200).json({ message: "success" });
+				})
+		});
+	})
+	
 })
 
 //unfollow user
-router.delete("/api/follow/:id",function(req,res){
+router.delete("/users/:id/following/:userid",function(req,res){
 
 })
 
 //remove bookmark
-router.delete("/api/bookmark/:id",function(req,res){
+router.delete("/pictures/:id/bookmarks/:userid",function(req,res){
 
 })
 
