@@ -172,7 +172,7 @@ const getUserData = (userids, callback) => {
 	userModel.find(query, function (err, users) {
 		if (err) {
 			console.log("error querying items, err: " + err);
-			return callback({ error: "internal server error" },undefined)//res.status(500).json({ message: "internal server error" });
+			return callback({ error: "internal server error" },undefined);//res.status(500).json({ message: "internal server error" });
 		} 
 		let userDataDict = userids
 		users.forEach(user => {
@@ -276,6 +276,9 @@ router.get("/pictures/:id/comments",function(req,res){
 			console.log("error querying comments, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
+		if (!picture) {
+			return res.status(404).json({ message: "Not found." });
+		}
 		return res.status(200).json(picture.comments);
 	})
 
@@ -290,7 +293,13 @@ router.get("/pictures/:id",function(req,res){
 			return res.status(500).json({ message: "internal server error" });
 		}
 		//if(picture)
-		return res.status(200).json(picture);
+		addUserData([picture], (err, pics) => {
+			if (err) {
+				console.log("error querying items, err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			return res.status(200).json(pics[0]);
+		});
 	});
 	
 })
@@ -352,9 +361,6 @@ router.post("/pictures",function(req,res){
 		})
 	});
 	
-    /*id++;
-    database.push(picture);
-    return res.status(200).json(picture);*/
 })
 
 //post comment
@@ -362,41 +368,48 @@ router.post("/pictures/:photoid/comments", function(req,res){
 	if (!req.body || !req.body.text) {
 		return res.status(400).json({ message: "Bad request" });
 	}
-	let userquery = { "_id": req.session.userid };
-	userModel.findOne(userquery, function (err, user) {
-		let comment = new commentModel({
-			owner: req.session.userid,
-			text: req.body.text,
-		});
-		comment.save(function (err) {
-			if (err) {
-				console.log("failed to save comment, err: " + err);
-				return res.status(500).json({ message: "internal server error" });
-			}
-		})
-
-		let query = { "_id": req.params.photoid };
-		let update = { "$push": { comments: comment } }
-		pictureModel.updateOne(query, update, function(err){
-			if (err) {
-				console.log("failed to update picture comments, err: " + err);
-				return res.status(500).json({ message: "internal server error" });
-			}
-			return res.status(201).json({ message: "success" });
-		});
+	let comment = new commentModel({
+		owner: req.session.userid,
+		text: req.body.text,
 	});
+	
+	let query = { "_id": req.params.photoid };
+	let update = { "$push": { comments: comment } }
+	pictureModel.updateOne(query, update, function (err, results) {
+		if (err) {
+			console.log("failed to update picture comments, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		if(results.modifiedCount>0){
+			comment.save(function (err) {
+				if (err) {
+					console.log("failed to save comment, err: " + err);
+					return res.status(500).json({ message: "internal server error" });
+				}
+			})
+			return res.status(201).json({ message: "success" });
+		}
+		return res.status(404).json({message:"Not found"})
+	});
+	/*let userquery = { "_id": req.session.userid };
+	userModel.findOne(userquery, function (err, user) {
+		
+	});*/
 })
 
 //add bookmark
 router.put("/pictures/:id/mark",  function(req,res){
 	let query = { "_id": req.params.id };
 	let update = { "$push": { bookmarkedBy: req.session.userid } }
-	pictureModel.updateOne(query, update, function (err) {
+	pictureModel.updateOne(query, update, function (err, results) {
 		if (err) {
 			console.log("failed to add bookmark, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		return res.status(201).json({ message: "success" });
+		if (results.modifiedCount > 0) {
+			return res.status(201).json({ message: "success" });
+		}
+		return res.status(404).json({ message: "Not found" });
 	});
 })
 
@@ -406,14 +419,19 @@ router.put("/users/:id/follow", function (req, res) {
 	let currentUser = { "_id": req.session.userid };
 	let follow = { "$push": { following: req.params.id } };
 	let addFollower = { "$push": { followers: req.session.userid } };
-	userModel.updateOne(toBeFollowed, addFollower);
-	userModel.updateOne(currentUser, follow, function (err) {
-		if (err) {
-			console.log("failed to follow user, err: " + err);
-			return res.status(500).json({ message: "internal server error" });
+	userModel.updateOne(toBeFollowed, addFollower,(err, results)=>{
+		if (results.modifiedCount > 0) {
+			userModel.updateOne(currentUser, follow, function (err) {
+				if (err) {
+					console.log("failed to follow user, err: " + err);
+					return res.status(500).json({ message: "internal server error" });
+				}
+				return res.status(201).json({ message: "success" });
+			});
 		}
-		return res.status(201).json({ message: "success" });
+		return res.status(404).json({ message: "Not found" })
 	});
+	
 })
 
 //edit user settings
@@ -450,7 +468,6 @@ router.put("/settings/:userid",function(req,res){
 		}
 	}	
 	return res.status(404).json({message: "not found"}); 
-	
 })
 
 //delete user
@@ -460,30 +477,18 @@ router.put("/settings/:userid",function(req,res){
 
 //delete own picture
 router.delete("/pictures/:id",function(req,res){
-	pictureModel.deleteOne({ "_id": req.params.id, "owner": req.session.userid }, function (err, results) {
+	pictureModel.findOneAndDelete({ "_id": req.params.id, "owner": req.session.userid }, function (err, picture) {
 		if (err) {
 			console.log("failed to remove item. err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		/*if(results.numberDeleted===0){
-			return res.status(404).json({message:"not found"})
-		}*/
-		return res.status(200).json({ message: "success" });
+		if (picture) {
+			let commentQuery = { "_id": { "$in": picture.comments.map((comment) => comment._id) } };
+			commentModel.deleteMany(commentQuery);
+			return res.status(200).json({ message: "success" });
+		}
+		return res.status(404).json({ message: "Not found" })
 	});
-
-	/*
-	let tempId = parseInt(req.params.id, 10);
-    for(let i = 0; i < database.length; i++){
-        if(tempId === database[i].id){
-            if(req.session.user !== database[i].user){
-                return res.status(409).json({ message: "You are not authorized to remove this item"});
-            }
-            database.splice(i,1);
-            return res.status(200).json({message: "Success!"});
-        }
-    }
-    return res.status(404).json({message: "not found"}); 
-	*/
 })
 
 //delete comment
@@ -493,6 +498,9 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 			console.log("failed to find picture to delete comment from. err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
+		if (!picture){
+			return res.status(404).json({ message: "Not found." });
+		}
 		let query = { "_id": req.params.id };
 		if (picture.owner !== req.session.userid) {
 			query = { 
@@ -500,14 +508,14 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 				"owner": req.session.userid
 			}
 		}
-		commentModel.deleteOne(query, function (err, results) {
+		commentModel.findOneAndDelete(query, function (err, comment) {
 			if (err) {
 				console.log("failed to remove item. err: " + err);
 				return res.status(500).json({ message: "internal server error" });
 			}
-			/*if(results.numberDeleted===0){
-				return res.status(404).json({message:"not found"})
-			}*/
+			if (!comment) {
+				return res.status(404).json({ message: "Not found." });
+			}
 			pictureModel.findByIdAndUpdate(
 				req.params.pictureid, 
 				{"$pull":{comments: {"_id":req.params.id}}},
@@ -516,9 +524,6 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 						console.log("failed to remove item. err: " + err);
 						return res.status(500).json({ message: "internal server error" });
 					}
-					/*if(results.numberDeleted===0){
-						return res.status(404).json({message:"not found"})
-					}*/
 					return res.status(200).json({ message: "success" });
 				})
 		});
