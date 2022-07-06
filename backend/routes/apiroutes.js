@@ -8,137 +8,6 @@ const userModel = require("../models/user");
 
 router = express.Router();
 
-//DATABASE
-/*const database = [
-	{
-		owner: {
-			firstname: "John",
-			lastname: "Doe",
-			id: 204,
-			urlsafe: "johndoe",
-			profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-		},
-		url: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg",
-		id: 102,
-		alt: "dog",
-		title: "Random dog picture",
-		date: "13 April 2022",
-		comments: [
-			{
-				user: {
-					firstname: "Jane",
-					lastname: "Doe",
-					id: 205,
-					urlsafe: "janedoe",
-					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-				},
-				id: 123,
-				text: "such a cute dog!",
-				date: "13 April 2022"
-			}
-		],
-		bookmarked: true
-	},
-	{
-		owner: {
-			firstname: "John",
-			lastname: "Doe",
-			id: 204,
-			urlsafe: "johndoe",
-			profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-		},
-		url: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg",
-		id: 103,
-		alt: "dog",
-		title: "Random dog picture 2",
-		date: "14 April 2022",
-		comments: [],
-		bookmarked: false
-	},
-	{
-		owner: {
-			firstname: "John",
-			lastname: "Doe",
-			id: 204,
-			urlsafe: "johndoe",
-			profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-		},
-		url: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg",
-		id: 104,
-		alt: "dog",
-		title: "Random dog picture 3",
-		date: "15 April 2022",
-		comments: [
-			{
-				user: {
-					firstname: "Jane",
-					lastname: "Doe",
-					id: 205,
-					urlsafe: "janedoe",
-					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-				},
-				id: 124,
-				text: "that's the third time you've posted that picture",
-				date: "15 April 2022"
-			},
-			{
-				user: {
-					firstname: "John",
-					lastname: "Doe",
-					id: 204,
-					urlsafe: "johndoe",
-					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-				},
-				id: 125,
-				text: "It's the only one I have...",
-				date: "15 April 2022"
-			},
-			{
-				user: {
-					firstname: "Jane",
-					lastname: "Doe",
-					id: 205,
-					urlsafe: "janedoe",
-					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-				},
-				id: 126,
-				text: "can't you take new photos?",
-				date: "15 April 2022"
-			},
-			{
-				user: {
-					firstname: "John",
-					lastname: "Doe",
-					id: 204,
-					urlsafe: "johndoe",
-					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-				},
-				id: 127,
-				text: "My house burned and everything I own was destroyed so the only picture I have left is this one I had as my profile picture. Oh, poor Doge the third... If only I hadn't left the candles burning again while going to work.",
-				date: "15 April 2022"
-			},
-			{
-				user: {
-					firstname: "Jane",
-					lastname: "Doe",
-					id: 205,
-					urlsafe: "janedoe",
-					profilePictureUrl: "https://images.dog.ceo/breeds/terrier-border/n02093754_4072.jpg"
-				},
-				id: 128,
-				text: "wow that got dark fast",
-				date: "15 April 2022"
-			}
-		],
-		bookmarked: false
-	}
-];*/
-/*const userdatabase =[];
-let testuser = {
-	email:'user@user.com',
-	password:'user123'
-}
-userdatabase.push(testuser);*/
 
 const settingstable =[]
 
@@ -172,7 +41,7 @@ const getUserData = (userids, callback) => {
 	userModel.find(query, function (err, users) {
 		if (err) {
 			console.log("error querying items, err: " + err);
-			return callback({ error: "internal server error" },undefined);//res.status(500).json({ message: "internal server error" });
+			return callback({ error: "internal server error" },undefined);
 		} 
 		let userDataDict = userids
 		users.forEach(user => {
@@ -292,7 +161,10 @@ router.get("/pictures/:id",function(req,res){
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		//if(picture)
+
+		if (!picture) {
+			return res.status(404).json({ message: "Not found." });
+		}
 		addUserData([picture], (err, pics) => {
 			if (err) {
 				console.log("error querying items, err: " + err);
@@ -309,57 +181,36 @@ router.post("/pictures",function(req,res){
 	if(!req.body | !req.body.url ) {
         return res.status(400).json({ message:"Bad request"});
     }
-	/*let owner = {}
-	if(req.body.owner){
-		owner = {
-			firstname: req.body.owner.firstname,
-			lastname: req.body.owner.lastname,
-			id: req.body.owner.id,
-			urlsafe: req.body.owner.urlsafe,
-			profilePictureUrl: req.body.owner.profilePictureUrl
-		}
-	}*/
+	
 	let picture = {
-		//owner: owner,
+		owner: req.session.userid,
 		url: req.body.url,
-		//id: id,
 		alt: req.body.alt,
 		title: req.body.title,
-		//date: req.body.date,
-		comments: req.body.comments,
+		description: req.body.description,
 	}
-	let userquery = { "_id": req.session.userid };
-	userModel.findOne(userquery, function (err, user) {
+	if (!req.body.description){
+		req.body.description = "";
+	}
+	let tags = req.body.description.split(/(\s+)/).filter((token)=>{
+		return token.startsWith("#")
+	}).map((tag)=>{
+		return {tag:tag}
+	})
+	tagModel.insertMany(tags, {ordered:false}, function(err, docs){
+		if(err){
+			console.log("error inserting tags: "+err);
+		}
+	});
+	picture.tags = tags;
+	let pictureM = new pictureModel(picture);
+	pictureM.save(function (err) {
 		if (err) {
-			console.log("error querying user " + req.session.user + ", err: " + err);
+			console.log("failed to save picture, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		if (!req.body.description){
-			req.body.description = "";
-		}
-		let tags = req.body.description.split(/(\s+)/).filter((token)=>{
-			return token.startsWith("#")
-		}).map((tag)=>{
-			return {tag:tag}
-		})
-		tagModel.insertMany(tags, {ordered:false}, function(err, docs){
-			if(err){
-				console.log("error inserting tags: "+err);
-			}
-		});
-		picture.owner = user._id;
-		picture.tags = tags;
-		picture.comments = [];
-		picture.bookmarkedBy = [];
-		let pictureM = new pictureModel(picture);
-		pictureM.save(function (err) {
-			if (err) {
-				console.log("failed to save picture, err: " + err);
-				return res.status(500).json({ message: "internal server error" });
-			}
-			return res.status(201).json({ message: "success" });
-		})
-	});
+		return res.status(201).json({ message: "success" });
+	})
 	
 })
 
@@ -391,10 +242,6 @@ router.post("/pictures/:photoid/comments", function(req,res){
 		}
 		return res.status(404).json({message:"Not found"})
 	});
-	/*let userquery = { "_id": req.session.userid };
-	userModel.findOne(userquery, function (err, user) {
-		
-	});*/
 })
 
 //add bookmark
