@@ -300,7 +300,8 @@ export const useRequests = () => {
        
         const formData = new FormData();
         formData.append("file", item.file);
-        //formData.append("api_key", process.env.REACT_APP_API_KEY);
+        formData.append("title", item.title);
+        formData.append("description", item.description);
         //formData.append("eager", "c_pad,h_300,w_400|c_crop,h_200,w_260");
         //formData.append("folder", "upload_test");
         //console.log(item.file);

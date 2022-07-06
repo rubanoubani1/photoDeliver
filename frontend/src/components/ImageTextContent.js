@@ -15,6 +15,7 @@ const ImageTextContent = (props) => {
                     addBookmark={() => props.funcs.addBookmark(props.image_id)}
                     />
             </div>
+            { props.comments ?
             <ExpandableCommentList 
                 comments={props.comments} 
                 user_id={props.user_id} 
@@ -22,6 +23,8 @@ const ImageTextContent = (props) => {
                 image_id={props.image_id}
                 addComment={props.funcs.addComment} 
                 deleteComment={props.funcs.deleteComment}/>
+                : <></>
+            }
         </div>
     );
 }

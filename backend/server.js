@@ -7,7 +7,8 @@ const app = express();
 
 app.use(express.json());
 //DATABASE
-
+const database = [];
+/*
 const database = [
 	{
 		owner: {
@@ -132,7 +133,7 @@ const database = [
 		bookmarked: "false"
 	}
 ];
-
+*/
 //LOGIN DATABASE
 let registeredUsers = [];
 let loggedSessions = [];

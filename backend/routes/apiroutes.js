@@ -27,6 +27,7 @@ router.use(fileUpload({ useTempFiles : true }));
 
 
 //DATABASE
+/*
 const database = [
 	{
 		owner: {
@@ -151,7 +152,9 @@ const database = [
 		bookmarked: false
 	}
 ];
-const settingstable =[]
+*/
+const database = [];
+const settingstable =[];
 const userdatabase =[];
 let testuser = {
 	email:'user@user.com',
@@ -235,192 +238,33 @@ router.get("/pictures/:id",function(req,res){
 	return res.status(404).json({message: "not found"}); 
 })
 router.post('/pictures', function(req, res) {
-	console.log(req.files.file);
-	cloudinary.uploader.upload(req.files.file.tempFilePath, function(error, result) {console.log(result, error); });
-	//cloudinary.v2.uploader.upload(req.file, options, callback);
-	/*
-	cloudinary.uploader.upload(
-		(error, result) => {
-			console.log(result, error);
-	})*/
-	let picture ={				
-		owner: {
-			firstname: "Joe",//req.body.owner.firstname,
-			lastname: "Doe",//req.body.owner.lastname,
-			id: 222,//req.session.userid,
-			urlsafe: "",
-			//profilePictureUrl: req.body.owner.profilePictureUrl
-		},
-		url: "",
-		id: id,
-		//alt: req.body.alt,
-		title: req.body.title,
-		date: Date.now(),
-		bookmarked: false
-	}
 	//console.log(req);
-	id++;
-	database.push(picture);
-	return res.status(200).json(picture);
-});
-/*
-//post image
-//client sending multipart/form-data saving image to buffer and  sending it to cloudinary
-router.post('/pictures', fileUpload.single('image'), function (req, res, next) {
-    let streamUpload = (req) => {
-        return new Promise((resolve, reject) => {
-            let stream = cloudinary.uploader.upload_stream(
-              (error, result) => {
-                if (result) {
-                  resolve(result);
-                } else {
-                  reject(error);
-                }
-              }
-            );
-
-          streamifier.createReadStream(req.file.buffer).pipe(stream);
-        });
-    };
-/*
-    async function upload(req) {
-        let result = await streamUpload(req);
-		let picture ={				
-			owner: {
-				firstname: "Joe",//req.body.owner.firstname,
-				lastname: "Doe",//req.body.owner.lastname,
-				id: 222,//req.session.userid,
-				urlsafe: result.urlsafe,
-				//profilePictureUrl: req.body.owner.profilePictureUrl
-			},
-			url: result.url,
-			id: id,
-			//alt: req.body.alt,
-			title: req.body.title,
-			date: Date.now(),
-			bookmarked: false
-		}
-		id++;
-		database.push(picture);
-        console.log(result);
-		return res.status(200).json(picture);
-    }
-
-    
-});
-*//*
-const getBase64FromUrl = async (blob) => {
-   
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = () => {
-        const base64data = reader.result;
-        resolve(base64data)
-      };
-    });
-}
-const toDataUrl = function(cover, callback) {
-	const xhr = new XMLHttpRequest();
-	xhr.responseType = 'blob';
-	xhr.onload = function() {
-	   var reader = new FileReader();
-	   reader.onloadend = function() {
-		 callback(reader.result);
-	   }
-	   reader.readAsDataURL(xhr.response);
-	};
-	xhr.open('GET', cover);
-	xhr.send();
-}
-   
-router.post("/pictures",function(req,res){
-	if(!req.body) {
-        return res.status(400).json({ message:"Bad request"});
-    }      
-	toDataUrl (req.body.image, function( base64Img ) {
-        cloudinary.uploader( base64Img,{
-          folder: 'testi',
-           resource_type: 'raw',
-         },function(err, res){ 
-            if (err){ 
-              console.log(err); 
-            } else { 
-              console.log(res);
-			  let picture ={				
+	//console.log(req.files.file);
+	cloudinary.uploader.upload(req.files.file.tempFilePath, 
+		function(error, result) {
+			//console.log(result, error);
+			let picture ={				
 				owner: {
 					firstname: "Joe",//req.body.owner.firstname,
 					lastname: "Doe",//req.body.owner.lastname,
 					id: 222,//req.session.userid,
-					urlsafe: result.urlsafe,
-				//profilePictureUrl: req.body.owner.profilePictureUrl
-			  	},
-			  	url: result.url,
-			  	id: id,
-			  	//alt: req.body.alt,
-			  	title: req.body.title,
-			  	date: Date.now(),
-			  	bookmarked: false
-			  }
-			  id++;
-			  database.push(picture);
-			  return res.status(200).json(picture);
-            } 
-        });
-    })
-	
-	
-//	});
-});*/
-//post comment
-router.post("/comment/:photoid", function(req,res){
-	/*let pictureid = parseInt(req.params.photoid, 10);
-	comment = {
-		user: req.body.user,
-		id: req.body.id,
-		text: req.body.text,
-		date: req.body.date
-	}
-	for(let i=0; i<database.length;i++){
-		if(pictureid === database[i].id){
-				database[i].comments.push(comment);
-				return res.status(200).json({message:"successful"});
-		}
-	}*/
-	return res.status(201).json({message:"successful"});
-})
-/*
-router.post("/pictures",async function(req,res){
-	if(!req.body) {
-        return res.status(400).json({ message:"Bad request"});
-    }      
-
-	// Find Cloudinary documentation using the link below
-	// https://cloudinary.com/documentation/upload_images
-	console.log(typeof req.body.image)
-	console.log(req.body);
-	//const photourl = await getBase64FromUrl(req.body.image);
-	//cloudinary.uploader.upload(photourl, (err,result) => {
-	let picture ={				
-					owner: {
-					firstname: "Joe",//req.body.owner.firstname,
-					lastname: "Doe",//req.body.owner.lastname,
-					id: 222,//req.session.userid,
-					urlsafe: result.urlsafe,
+					urlsafe: "",
 					//profilePictureUrl: req.body.owner.profilePictureUrl
 				},
-				url: result.url,
+				url: result.secure_url,
 				id: id,
 				//alt: req.body.alt,
 				title: req.body.title,
+				description: req.body.description,
 				date: Date.now(),
 				bookmarked: false
-		}
-		id++;
-		database.push(picture);
-		return res.status(200).json(picture);
-//	});
-});*/
+			}
+			//console.log(req);
+			id++;
+			database.push(picture);
+			return res.status(200).json(picture);
+	});	
+});
 //post comment
 router.post("/comment/:photoid", function(req,res){
 	/*let pictureid = parseInt(req.params.photoid, 10);
@@ -499,7 +343,7 @@ router.delete("/pictures/:id",function(req,res){
             if(req.session.user !== database[i].user){
                 return res.status(409).json({ message: "You are not authorized to remove this item"});
             }
-			//cloudinary.uploader.destroy(database[i].id, function(result) { console.log(result) });
+			//cloudinary.uploader.destroy(database[i].public_id, function(result) { console.log(result) });
             database.splice(i,1);
             return res.status(200).json({message: "Success!"});
         }
