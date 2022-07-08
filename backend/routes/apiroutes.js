@@ -259,8 +259,6 @@ router.put("/pictures/:id/mark", function (req, res) {
 	};
 	let update = { "$addToSet": { bookmarkedBy: req.session.userid } }
 	pictureModel.updateOne(query, update, function (err, picResults) {
-		console.log("pic");
-		console.log(picResults);
 		if (err) {
 			console.log("failed to add bookmark, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -271,8 +269,6 @@ router.put("/pictures/:id/mark", function (req, res) {
 			};
 			let userUpdate = { "$addToSet": { bookmarked: req.params.id } };
 			userModel.updateOne(userQuery, userUpdate, function (err, userResults) {
-				console.log("user " + req.params.id);
-				console.log(userResults);
 				if (err) {
 					console.log("failed to add bookmark, err: " + err);
 					return res.status(500).json({ message: "internal server error" });
@@ -316,7 +312,6 @@ router.put("/users/:id/follow", function (req, res) {
 			}
 		},
 	], function (err, results) {
-		console.log(results);
 		if (err) {
 			console.log("failed to follow user, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -470,8 +465,6 @@ router.put("/pictures/:id/unmark",function(req,res){
 			};
 			let userUpdate = { "$pullAll": { bookmarked: [req.params.id] } };
 			userModel.updateOne(userQuery, userUpdate, function (err, userResults) {
-				console.log("pull user bookmark" + req.params.id);
-				console.log(userResults);
 				if (err) {
 					console.log("failed to add bookmark, err: " + err);
 					return res.status(500).json({ message: "internal server error" });
