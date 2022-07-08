@@ -87,12 +87,18 @@ async function addUserData(pictures, callback){
 	});
 }
 
+const pictureProjection = {
+	//"_id": 0,
+	"bookmarkedBy": 0,
+	//"comments._id": 0
+}
+
 //REST API
 
 //get images
 router.get("/pictures",function(req,res) {
 	let query = {}; //{ "user": req.session.user };
-	pictureModel.find(query, function (err, pictures) {
+	pictureModel.find(query, pictureProjection, function (err, pictures) {
 		if (err) {
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -110,7 +116,7 @@ router.get("/pictures",function(req,res) {
 //get own images / get images of user
 router.get("/user/:user/pictures",function(req,res){
 	let query = { "owner": req.session.userid };
-	pictureModel.find(query, function (err, pictures) {
+	pictureModel.find(query, pictureProjection, function (err, pictures) {
 		if (err) {
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -137,7 +143,7 @@ router.get("/user/:user/bookmarks",function(req,res){
 		}
 		//TODO: check that the user.bookmarked and pictures have ids that can be queried
 		let query = { "_id": {"$in":user.bookmarked} };
-		pictureModel.find(query, function (err, pictures) {
+		pictureModel.find(query, pictureProjection, function (err, pictures) {
 			if (err) {
 				console.log("error querying pictures, err: " + err);
 				return res.status(500).json({ message: "internal server error" });
@@ -156,7 +162,7 @@ router.get("/user/:user/bookmarks",function(req,res){
 //get comments of an image
 router.get("/pictures/:id/comments",function(req,res){
 	let query = { "_id": req.params.id };
-	pictureModel.findOne(query, function (err, picture) {
+	pictureModel.findOne(query, {"comments":1}, function (err, picture) {
 		if (err) {
 			console.log("error querying comments, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -172,7 +178,7 @@ router.get("/pictures/:id/comments",function(req,res){
 //get an image
 router.get("/pictures/:id",function(req,res){
 	let query = { "_id": req.params.id };
-	pictureModel.findOne(query, function (err, picture) {
+	pictureModel.findOne(query, pictureProjection, function (err, picture) {
 		if (err) {
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -207,7 +213,8 @@ router.post("/pictures",function(req,res){
 		alt: req.body.alt,
 		title: req.body.title,
 		description: req.body.description,
-		//bookmarkedBy: [],
+		bookmarkedBy: [],
+		comments: [],
 	}
 	if (!req.body.description){
 		req.body.description = "";
@@ -282,7 +289,6 @@ router.put("/pictures/:id/mark", function (req, res) {
 		if (picResults.modifiedCount > 0) {
 			let userQuery = {
 				"_id": req.session.userid,
-				//"bookmarked": { "$nin": [req.params.id] },
 			};
 			let userUpdate = { "$addToSet": { bookmarked: req.params.id } };
 			userModel.updateOne(userQuery, userUpdate, function (err, userResults) {
@@ -295,10 +301,16 @@ router.put("/pictures/:id/mark", function (req, res) {
 				if (userResults.modifiedCount > 0) {
 					return res.status(200).json({ message: "success" });
 				}
-				return res.status(404).json({ message: "Not found" });
+				if (userResults.matchedCount > 0) {
+					return res.status(200).json({ message: "Already bookmarked." });
+				}
+				return res.status(404).json({ message: "Not Found." });
 			});
 		} else {
-			return res.status(404).json({ message: "Not found" });
+			if (matchedCount > 0) {
+				return res.status(200).json({ message: "Already bookmarked." });
+			}
+			return res.status(404).json({ message: "Not Found." });
 		}
 		
 	});
@@ -308,19 +320,35 @@ router.put("/pictures/:id/mark", function (req, res) {
 router.put("/users/:id/follow", function (req, res) {
 	let toBeFollowed = { "_id": req.params.id };
 	let currentUser = { "_id": req.session.userid };
-	let follow = { "$$addToSet": { following: req.params.id } };
-	let addFollower = { "$$addToSet": { followers: req.session.userid } };
-	userModel.updateOne(toBeFollowed, addFollower,(err, results)=>{
-		if (results.modifiedCount > 0) {
-			userModel.updateOne(currentUser, follow, function (err) {
-				if (err) {
-					console.log("failed to follow user, err: " + err);
-					return res.status(500).json({ message: "internal server error" });
-				}
-				return res.status(200).json({ message: "success" });
-			});
+	let follow = { "$addToSet": { following: req.params.id } };
+	let addFollower = { "$addToSet": { followers: req.session.userid } };
+
+	userModel.bulkWrite([
+		{
+			updateOne: {
+				filter: toBeFollowed,
+				update: addFollower
+			}
+		},
+		{
+			updateOne: {
+				filter: currentUser,
+				update: follow
+			}
+		},
+	], function (err, results) {
+		console.log(results);
+		if (err) {
+			console.log("failed to follow user, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
 		}
-		return res.status(404).json({ message: "Not found" })
+		if (results && results.nModified > 0) {
+			return res.status(200).json({ message: "Success" });
+		}
+		if (results && results.nMatched > 0) {
+			return res.status(200).json({ message: "User was already followed" });
+		}
+		return res.status(404).json({ message: "Not Found" });
 	});
 	
 })
@@ -426,20 +454,33 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 router.put("/users/:id/unfollow",function(req,res){
 	let toBeUnfollowed = { "_id": req.params.id };
 	let currentUser = { "_id": req.session.userid };
-	let unfollow = { "$pullAll": { following: [req.params.id] } };
-	let removeFollower = { "$pullAll": { followers: [req.session.user] } };
-	userModel.updateOne(toBeUnfollowed, removeFollower,function(err){
+	let unfollow       = { "$pullAll": { following: [req.params.id] } };
+	let removeFollower = { "$pullAll": { followers: [req.session.userid] } };
+	userModel.bulkWrite([
+		{ 
+			updateOne: {
+				filter: toBeUnfollowed,
+				update: removeFollower
+			}
+		},
+		{
+			updateOne: {
+				filter: currentUser,
+				update: unfollow
+			}
+		},
+	],function(err,results){
 		if (err) {
 			console.log("failed to unfollow user, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		userModel.updateOne(currentUser, unfollow, function (err) {
-			if (err) {
-				console.log("failed to unfollow user, err: " + err);
-				return res.status(500).json({ message: "internal server error" });
-			}
-			return res.status(200).json({ message: "success" });
-		});
+		if (results && results.nModified > 0){
+			return res.status(200).json({ message: "Success" });
+		}
+		if (results && results.nMatched > 0) {
+			return res.status(200).json({ message: "User was already unfollowed" });
+		}
+		return res.status(404).json({ message: "Not Found" });
 	});
 	
 })
@@ -470,9 +511,15 @@ router.put("/pictures/:id/unmark",function(req,res){
 				if (userResults.modifiedCount > 0) {
 					return res.status(200).json({ message: "success" });
 				}
+				if (userResults.matchedCount > 0) {
+					return res.status(200).json({ message: "Already not bookmarked" });
+				}
 				return res.status(404).json({ message: "Not found" });
 			});
 		} else {
+			if (results.matchedCount > 0) {
+				return res.status(200).json({ message: "Picture was already not bookmarked" });
+			}
 			return res.status(404).json({ message: "Not found" });
 		}
 		

@@ -102,6 +102,9 @@ app.post("/register", function(req,res) {
 			lastname: "",
 			userIconUrl: "",
 			bio: "",
+			followers: [],
+			following: [],
+			bookmarked: [],
 		});
 		userdata.save(function (err, userdata) {
 			if (err) {
@@ -157,31 +160,32 @@ app.post("/login", function(req,res) {
 			setTimeout(function () {
 				return res.status(401).json({ message: "unauthorized" });
 			}, millisToWait);
-		}
-		bcrypt.compare(req.body.password+user.salt, user.hash, function (err, success) {
-			if (err) {
-				console.log("Error comparing passwrds, err: " + err);
-				return res.status(500).json({ message: "Internal server error" });
-			}
-			if (!success) {
-				return res.status(401).json({ message: "unauthorized" });
-			}
-			const token = createToken(128);
-			let now = Date.now();
-			let session = new sessionModel({
-				user: user.username,
-				userid: user.userid,
-				ttl: now + time_to_live_diff,
-				token: token,
-			});
-			session.save(function (err) {
+		} else {
+			bcrypt.compare(req.body.password + user.salt, user.hash, function (err, success) {
 				if (err) {
-					console.log("failed to save session in login, err: " + err);
-					return res.status(500).json({ message: "internal server error" });
+					console.log("Error comparing passwrds, err: " + err);
+					return res.status(500).json({ message: "Internal server error" });
 				}
-				return res.status(200).json({ token: token });
+				if (!success) {
+					return res.status(401).json({ message: "unauthorized" });
+				}
+				const token = createToken(128);
+				let now = Date.now();
+				let session = new sessionModel({
+					user: user.username,
+					userid: user.userid,
+					ttl: now + time_to_live_diff,
+					token: token,
+				});
+				session.save(function (err) {
+					if (err) {
+						console.log("failed to save session in login, err: " + err);
+						return res.status(500).json({ message: "internal server error" });
+					}
+					return res.status(200).json({ token: token });
+				});
 			});
-		});
+		}
 	});
 });
 
