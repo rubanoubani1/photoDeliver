@@ -5,6 +5,7 @@ const { commentModel } = require("../models/comment");
 const tagModel = require("../models/tag");
 const notificationModel = require("../models/notification");
 const userModel = require("../models/user");
+const crypto = require('crypto');
 
 router = express.Router();
 
@@ -32,13 +33,26 @@ let usersetting2 = {
 settingstable.push(usersetting1);
 settingstable.push(usersetting2);
 
+const createToken = (bytes) => {
+	let token = crypto.randomBytes(bytes);
+	return token.toString("hex");
+}
+
 
 //let id = 100;
 
 //returns mapping from user ids to user data
 const getUserData = (userids, callback) => {
 	let query = {"_id":{"$in":userids}};
-	userModel.find(query, function (err, users) {
+	let projection = {
+		_id: 1,
+		urlsafe: 1,
+		firstname: 1,
+		lastname: 1,
+		userIconUrl: 1,
+		bio: 1,
+	}
+	userModel.find(query, projection, function (err, users) {
 		if (err) {
 			console.log("error querying items, err: " + err);
 			return callback({ error: "internal server error" },undefined);
@@ -113,7 +127,9 @@ router.get("/user/:user/pictures",function(req,res){
 
 //get images that user has bookmarked
 router.get("/user/:user/bookmarks",function(req,res){
-	let userquery = { "_id": req.session.userid };
+	let userquery = { 
+		"_id": req.session.userid, 
+	};
 	userModel.findOne(userquery, function (err, user) {
 		if (err) {
 			console.log("error querying user "+req.session.user+", err: " + err);
@@ -176,6 +192,8 @@ router.get("/pictures/:id",function(req,res){
 	
 })
 
+//POST
+
 //post image
 router.post("/pictures",function(req,res){
 	if(!req.body | !req.body.url ) {
@@ -185,9 +203,11 @@ router.post("/pictures",function(req,res){
 	let picture = {
 		owner: req.session.userid,
 		url: req.body.url,
+		urlsafe: createToken(32), //this might have collisions if there are millions of users
 		alt: req.body.alt,
 		title: req.body.title,
 		description: req.body.description,
+		//bookmarkedBy: [],
 	}
 	if (!req.body.description){
 		req.body.description = "";
@@ -245,18 +265,42 @@ router.post("/pictures/:photoid/comments", function(req,res){
 })
 
 //add bookmark
-router.put("/pictures/:id/mark",  function(req,res){
-	let query = { "_id": req.params.id };
-	let update = { "$push": { bookmarkedBy: req.session.userid } }
-	pictureModel.updateOne(query, update, function (err, results) {
+router.put("/pictures/:id/mark", function (req, res) {
+	
+	let query = {
+		"_id": req.params.id,
+		//"bookmarkedBy": { "$nin": [req.session.userid] },
+	};
+	let update = { "$addToSet": { bookmarkedBy: req.session.userid } }
+	pictureModel.updateOne(query, update, function (err, picResults) {
+		console.log("pic");
+		console.log(picResults);
 		if (err) {
 			console.log("failed to add bookmark, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		if (results.modifiedCount > 0) {
-			return res.status(201).json({ message: "success" });
+		if (picResults.modifiedCount > 0) {
+			let userQuery = {
+				"_id": req.session.userid,
+				//"bookmarked": { "$nin": [req.params.id] },
+			};
+			let userUpdate = { "$addToSet": { bookmarked: req.params.id } };
+			userModel.updateOne(userQuery, userUpdate, function (err, userResults) {
+				console.log("user " + req.params.id);
+				console.log(userResults);
+				if (err) {
+					console.log("failed to add bookmark, err: " + err);
+					return res.status(500).json({ message: "internal server error" });
+				}
+				if (userResults.modifiedCount > 0) {
+					return res.status(200).json({ message: "success" });
+				}
+				return res.status(404).json({ message: "Not found" });
+			});
+		} else {
+			return res.status(404).json({ message: "Not found" });
 		}
-		return res.status(404).json({ message: "Not found" });
+		
 	});
 })
 
@@ -264,8 +308,8 @@ router.put("/pictures/:id/mark",  function(req,res){
 router.put("/users/:id/follow", function (req, res) {
 	let toBeFollowed = { "_id": req.params.id };
 	let currentUser = { "_id": req.session.userid };
-	let follow = { "$push": { following: req.params.id } };
-	let addFollower = { "$push": { followers: req.session.userid } };
+	let follow = { "$$addToSet": { following: req.params.id } };
+	let addFollower = { "$$addToSet": { followers: req.session.userid } };
 	userModel.updateOne(toBeFollowed, addFollower,(err, results)=>{
 		if (results.modifiedCount > 0) {
 			userModel.updateOne(currentUser, follow, function (err) {
@@ -273,7 +317,7 @@ router.put("/users/:id/follow", function (req, res) {
 					console.log("failed to follow user, err: " + err);
 					return res.status(500).json({ message: "internal server error" });
 				}
-				return res.status(201).json({ message: "success" });
+				return res.status(200).json({ message: "success" });
 			});
 		}
 		return res.status(404).json({ message: "Not found" })
@@ -382,8 +426,8 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 router.put("/users/:id/unfollow",function(req,res){
 	let toBeUnfollowed = { "_id": req.params.id };
 	let currentUser = { "_id": req.session.userid };
-	let unfollow = { "$pull": { following: {$in:[req.params.id]} } };
-	let removeFollower = { "$pull": { followers: {$in:[req.session.user]} } };
+	let unfollow = { "$pullAll": { following: [req.params.id] } };
+	let removeFollower = { "$pullAll": { followers: [req.session.user] } };
 	userModel.updateOne(toBeUnfollowed, removeFollower,function(err){
 		if (err) {
 			console.log("failed to unfollow user, err: " + err);
@@ -394,7 +438,7 @@ router.put("/users/:id/unfollow",function(req,res){
 				console.log("failed to unfollow user, err: " + err);
 				return res.status(500).json({ message: "internal server error" });
 			}
-			return res.status(201).json({ message: "success" });
+			return res.status(200).json({ message: "success" });
 		});
 	});
 	
@@ -403,13 +447,35 @@ router.put("/users/:id/unfollow",function(req,res){
 //remove bookmark
 router.put("/pictures/:id/unmark",function(req,res){
 	let query = { "_id": req.params.id };
-	let update = { "$pull": { bookmarkedBy: {"$in":[req.session.userid]} } }
-	pictureModel.updateOne(query, update, function (err) {
+	let update = { "$pullAll": { bookmarkedBy: [req.session.userid] } }
+	
+	pictureModel.updateOne(query, update, function (err, results) {
 		if (err) {
 			console.log("failed to add bookmark, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
-		return res.status(201).json({ message: "success" });
+		if (results.modifiedCount > 0) {
+			let userQuery = {
+				"_id": req.session.userid,
+				//"bookmarked": { "$nin": [req.params.id] },
+			};
+			let userUpdate = { "$pullAll": { bookmarked: [req.params.id] } };
+			userModel.updateOne(userQuery, userUpdate, function (err, userResults) {
+				console.log("pull user bookmark" + req.params.id);
+				console.log(userResults);
+				if (err) {
+					console.log("failed to add bookmark, err: " + err);
+					return res.status(500).json({ message: "internal server error" });
+				}
+				if (userResults.modifiedCount > 0) {
+					return res.status(200).json({ message: "success" });
+				}
+				return res.status(404).json({ message: "Not found" });
+			});
+		} else {
+			return res.status(404).json({ message: "Not found" });
+		}
+		
 	});
 })
 
