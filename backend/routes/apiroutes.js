@@ -10,29 +10,6 @@ const crypto = require('crypto');
 router = express.Router();
 
 
-const settingstable =[]
-
-let usersetting1 = {
-	userid: 2,
-	firstname: "Matti",
-	lastname: "Virtanen",
-	email: "mm@mm.com",
-	password: "",
-	birthday: "",
-	user_icon: ""
-}
-let usersetting2 = {
-	userid: 3,
-	firstname: "Antti",
-	lastname: "",
-	email: "",
-	password: "",
-	birthday:  "",
-	user_icon: ""
-}
-settingstable.push(usersetting1);
-settingstable.push(usersetting2);
-
 const createToken = (bytes) => {
 	let token = crypto.randomBytes(bytes);
 	return token.toString("hex");
@@ -90,7 +67,8 @@ async function addUserData(pictures, callback){
 const pictureProjection = {
 	//"_id": 0,
 	"bookmarkedBy": 0,
-	//"comments._id": 0
+	//"comments._id": 0,
+	"comments.picture": 0,
 }
 
 //REST API
@@ -248,6 +226,7 @@ router.post("/pictures/:photoid/comments", function(req,res){
 	}
 	let comment = new commentModel({
 		owner: req.session.userid,
+		picture: req.params.photoid,
 		text: req.body.text,
 	});
 	
@@ -260,14 +239,14 @@ router.post("/pictures/:photoid/comments", function(req,res){
 		}
 		if(results.modifiedCount>0){
 			comment.save(function (err) {
-				if (err) {
+				/*if (err) { //this could cause res.status to be set twice 
 					console.log("failed to save comment, err: " + err);
 					return res.status(500).json({ message: "internal server error" });
-				}
+				}*/
 			})
 			return res.status(201).json({ message: "success" });
 		}
-		return res.status(404).json({message:"Not found"})
+		return res.status(404).json({message:"Not found"});
 	});
 })
 
@@ -354,39 +333,28 @@ router.put("/users/:id/follow", function (req, res) {
 })
 
 //edit user settings
-router.put("/settings/:userid",function(req,res){
-	if (!req.body || !req.body.email ) {
+router.put("/settings",function(req,res){
+	if (!req.body ) {
 		return res.status(400).json({ message: "Bad request" });
 	}
-	//TODO: add settings to mongo
-	
-	let tempId = parseInt(req.params.userid, 10);
-
-    if(!req.body) {
-        return res.status(400).json({message:"Bad request"});
-    }
-	if(!req.body.email) {
-        return res.status(400).json({message:"Bad request"});
-    }
+	let query = {"_id":req.session.userid};
 	let settings = {
-		userid: req.params.userid,
+		//urlsafe: req.body.urlsafe,
+		bio: req.body.bio,
 		firstname: req.body.firstname,
 		lastname: req.body.lastname,
-		email: req.body.email,
-		password: req.body.password,
+		//email: req.body.email, //email changing should be separate endpoint
+		//password: req.body.password, //password changing should be separate endpoint
 		birthday: req.body.birthday,
-		user_icon: req.body.user_icon
-	}
-	for(i=0; i<settingstable.length; i++){
-		if(tempId === settingstable[i].userid){
-			if(req.session.user !== settingstable[i].user){
-                return res.status(409).json({ message: "You are not authorized to edit these settings"});
-			}
-			settingstable.splice(i,1, settings);
-			return res.status(200).json({message: "Success!"});
+		userIconUrl: req.body.userIconUrl
+	};
+	userModel.updateOne(query,{"$set":settings},function(err){
+		if (err) {
+			console.log("failed to follow user, err: " + err);
+			return res.status(500).json({message:"Internal server error"})
 		}
-	}	
-	return res.status(404).json({message: "not found"}); 
+		return res.status(200).json({ message: "Success" });
+	})
 })
 
 //delete user

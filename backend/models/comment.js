@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const schema = mongoose.Schema({
-    owner: String,
+    owner: String,  //user id
+    picture: String, //picture id
     text: String
 }, {
     timestamps: {
