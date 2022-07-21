@@ -137,7 +137,20 @@ export const getList = (token, page, page_id) => {
 
 export const addImage = (token, item) => {
     return async (dispatch) => {
-        let request = createRequest("POST", token, item);
+        const formData = new FormData();
+        formData.append("file", item.file);
+        formData.append("title", item.title);
+        formData.append("description", item.description);
+        let request = {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                //"content-type":"multipart/form-data",
+                //"content-type":"application/json",
+                "token": token
+            },
+            body: formData
+        }
         let response = await loadResponse(dispatch, "/api/pictures", request);
         responseCheckUpdate(response, dispatch, addImageSuccess, addImageFailed, token);
     }
@@ -154,7 +167,7 @@ export const removeImage = (token, image_id) => {
 export const addComment = (token, item, image_id) => {
     return async (dispatch) => {
         let request = createRequest("POST", token, item);
-        let response = await loadResponse(dispatch, "/api/pictures/" + image_id, request);
+        let response = await loadResponse(dispatch, "/api/pictures/" + image_id+"/comments", request);
         responseCheckUpdate(response, dispatch, addCommentSuccess, addCommentFailed, token);
     }
 }
@@ -169,32 +182,32 @@ export const removeComment = (token, image_id, comment_id) => {
 
 export const addBookmark = (token, image_id, user_id) => {
     return async (dispatch) => {
-        let request = createRequest("POST", token, {user_id:user_id});
-        let response = await loadResponse(dispatch, "/api/pictures/" + image_id + "/bookmarks", request);
+        let request = createRequest("PUT", token);
+        let response = await loadResponse(dispatch, "/api/pictures/" + image_id + "/mark", request);
         responseCheckUpdate(response, dispatch, addBookmarkSuccess, addBookmarkFailed, token);
     }
 }
 
 export const removeBookmark = (token, image_id, user_id) => {
     return async (dispatch) => {
-        let request = createRequest("DELETE", token);
-        let response = await loadResponse(dispatch, "/api/pictures/" + image_id + "/bookmarks/" + user_id, request);
+        let request = createRequest("PUT", token);
+        let response = await loadResponse(dispatch, "/api/pictures/" + image_id + "/unmark", request);
         responseCheckUpdate(response, dispatch, removeBookmarkSuccess, removeBookmarkFailed, token);
     }
 }
 
 export const follow = (token, toFollow_id, user_id) => {
     return async (dispatch) => {
-        let request = createRequest("POST", token, { user_id: toFollow_id });
-        let response = await loadResponse(dispatch, "/api/users/" + user_id + "/following", request);
+        let request = createRequest("PUT", token);
+        let response = await loadResponse(dispatch, "/api/users/" + toFollow_id + "/follow", request);
         responseCheckUpdate(response, dispatch, followSuccess, followFailed, token);
     }
 }
 
 export const unfollow = (token, following_id, user_id) => {
     return async (dispatch) => {
-        let request = createRequest("DELETE", token);
-        let response = await loadResponse(dispatch, "/api/users/" + user_id + "/following/" + following_id, request);
+        let request = createRequest("PUT", token);
+        let response = await loadResponse(dispatch, "/api/users/" + following_id + "/unfollow", request);
         responseCheckUpdate(response, dispatch, unfollowSuccess, unfollowFailed, token);
     }
 }

@@ -15,6 +15,8 @@ const ImageUploader = (props) => {
             //reader.readAsDataURL(files[0]);
             //console.log(URL.createObjectURL(files[0]));
             props.setImage(URL.createObjectURL(files[0]));
+            props.setFile(files[0]);
+           
         }
     }
 
@@ -40,7 +42,8 @@ const ImageUploader = (props) => {
     const onChange = (event) => {
         handleFile(event.target.files);
     }
-
+    
+    //TODO: add a file drop area as image placeholder
     return (
         <div ref={fileDropRef} className="file-uploader" onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}>
             
@@ -54,10 +57,12 @@ const ImageUploader = (props) => {
                 placeholder="hello.jpg"
                 //value={props.image}
             />
-            <img
-                src={props.image}
-                alt="user_icon"
-                style={{ width: "100%" }} />
+            {props.image
+                ?<img
+                    src={props.image}
+                    alt="preview"
+                    style={{ width: "100%" }} />
+                :<></>}
         </div>
     );
 }

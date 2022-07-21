@@ -21,14 +21,14 @@ function App() {
 		imageError: state.images.error
 	}))
 
-	let messageArea = <h4> </h4>
+	let messageArea = <></>
 	if (state.loading) {
-		messageArea = <h4>Loading...</h4>
+		messageArea = <h4>Loading..<hr />.</h4>
 	}
 	if (state.loginError) {
-		messageArea = <h4>{state.loginError}</h4>
+		messageArea = <h4>{state.loginError}<hr /></h4>
 	} else if (state.imageError) {
-		messageArea = <h4>{state.imageError}</h4>
+		messageArea = <h4>{state.imageError}<hr /></h4>
 	}
 
 
@@ -45,6 +45,7 @@ function App() {
 			<Route path="/add" element={<AddPicture />} />
 			<Route path="/posts" element={<MyPosts />} />
 			<Route path="/Logout" element={<Logout />} />
+			<Route path="*" element={<Navigate to="/" />} />
 		</Routes>
 	}
 	return (
@@ -52,7 +53,6 @@ function App() {
 		<div className="App">
 
 			{messageArea}
-			<hr />
 			{tempRender}
 		</div>
 	);

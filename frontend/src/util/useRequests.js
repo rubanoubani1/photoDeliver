@@ -317,20 +317,68 @@ export const useRequests = () => {
         });
     }
 
-    const addPicture = (item) => {
+    const addPicture = async (item) => {
+        //save picture to cloudinary
+       
+        const formData = new FormData();
+        formData.append("file", item.file);
+        formData.append("title", item.title);
+        formData.append("description", item.description);
+        //formData.append("eager", "c_pad,h_300,w_400|c_crop,h_200,w_260");
+        //formData.append("folder", "upload_test");
+        //console.log(item.file);
+        //data.append("file", item.file);
+        //data.append("upload_preset",process.env.REACT_APP_PRESET_NAME);
+        //data.append("cloud_name",process.env.REACT_APP_CLOUD_NAME );
+        //data.append("folder","test-picture-folder");
+        /*
+        setUrlRequest({
+            url: "https://api.cloudinary.com/v1_1/"+process.env.REACT_APP_CLOUD_NAME+"/image/upload",
+            request: {
+                method: "POST",
+                //mode: "cors",
+                headers: {
+                    "content-type":"multipart/form-data",
+                },
+                body: formData
+            },
+            action: "addimage"
+        });*/
+        
         setUrlRequest({
             url: "/api/pictures",
             request: {
                 method: "POST",
                 mode: "cors",
                 headers: {
-                    "content-type": "application/json",
+                    //"content-type":"multipart/form-data",
                     "token": state.token
                 },
-                body: JSON.stringify(item)
+                body: formData
             },
             action: "addimage"
         });
+
+        //console.log(process.env.REACT_APP_CLOUD_NAME);
+       /* 
+        //const url = `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUD_NAME}/image/upload`;
+       
+        const request = {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "content-type": "multipart/form-data",
+            },
+            body:data
+        }
+        try{
+            const resp = await fetch(url,request);  
+            console.log(resp);            
+            //console.log("url:" + resp.data.url +", public_id:" + resp.data.public_id);
+        }catch(err){
+            console.log("errr : ",err);
+        }
+        */
     }
     const deletePicture = (id) => {
         setUrlRequest({
