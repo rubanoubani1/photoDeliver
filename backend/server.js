@@ -6,9 +6,9 @@ const crypto = require ("crypto");
 const app = express();
 
 app.use(express.json());
-
 //DATABASE
-
+const database = [];
+/*
 const database = [
 	{
 		owner: {
@@ -133,7 +133,7 @@ const database = [
 		bookmarked: "false"
 	}
 ];
-
+*/
 //LOGIN DATABASE
 let registeredUsers = [];
 let loggedSessions = [];
@@ -276,8 +276,8 @@ app.post("/logout",function(req,res) {
 })
 
 
-app.use("/api",isUserLogged,apiroutes);
-
+//app.use("/api",isUserLogged,apiroutes);
+app.use("/api",apiroutes);
 app.listen(port);
 
 console.log("Runnning on port ", port);

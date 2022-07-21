@@ -5,13 +5,15 @@ const PictureForm = (props) => {
 
     const [state, setState] = useState({
         title:"",
+        public_id: "",
         description:"",
-        image:null
+        image:null,
+        file:null
     })
 
     const onSubmit = (event) => {
         event.preventDefault();
-        props.funcs.addPicture(state)
+        props.funcs.addPicture(state);
     }
 
     const onChange = (event) => {
@@ -33,6 +35,15 @@ const PictureForm = (props) => {
             }
         })
     }
+    const setFile = (file) => {
+        setState((state) => {
+            console.log(state);
+            return {
+                ...state,
+                file: file
+            }
+        })
+    }
 
     
 
@@ -40,27 +51,32 @@ const PictureForm = (props) => {
         <form onSubmit={onSubmit} className="mb-3">
             
             <label htmlFor="title" className="form-label">Title</label>
-            <input type="text"
+            <input 
+                type="text"
                 id="title"
                 name="title"
                 placeholder="Title"
                 className="form-control"
                 onChange={onChange}
-                value={state.title}></input>
-
-            <input type="text"
+                value={state.title}
+            ></input>
+            <input 
+                type="text"
                 id="description"
                 name="description"
                 placeholder="Description"
                 className="form-control"
                 onChange={onChange}
-                value={state.description}></input>
+                value={state.description}
+            ></input>
             
-            <ImageUploader image={state.image} setImage={setImage}/>
+            <ImageUploader image={state.image} setImage={setImage} setFile={setFile}/>
 
-            <input type="submit"
+            <input 
+                type="submit"
                 className="btn btn-primary"
-                value="Upload image"></input>
+                value="Upload image"
+            ></input>
         </form>
     );
 }

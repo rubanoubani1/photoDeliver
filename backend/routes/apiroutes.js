@@ -1,9 +1,33 @@
-const { request, text } = require("express");
+
 const express = require("express");
 
-router = express.Router();
+require("dotenv").config();
+//library for form data parsing
+//const multer = require("multer");
+//const upload = multer();
+const fileUpload = require("express-fileupload");
+
+//const fileUpload = multer(); //can be removed
+//const FileReader = require("filereader");  //can be removed
+//const streamifier = require("streamifier"); //can be removed
+//const formidable = require("formidable");
+//cloudinary api for uploading images
+const cloudinary = require("cloudinary").v2;
+// cloudinary configuration
+cloudinary.config({
+    cloud_name: process.env.YOUR_CLOUD_NAME,
+    api_key: process.env.YOUR_API_NAME,
+    api_secret: process.env.YOUR_API_SECRET
+});
+
+
+var router = express.Router();
+
+router.use(fileUpload({ useTempFiles : true }));
+
 
 //DATABASE
+/*
 const database = [
 	{
 		owner: {
@@ -128,7 +152,9 @@ const database = [
 		bookmarked: false
 	}
 ];
-const settingstable =[]
+*/
+const database = [];
+const settingstable =[];
 const userdatabase =[];
 let testuser = {
 	email:'user@user.com',
@@ -211,43 +237,37 @@ router.get("/pictures/:id",function(req,res){
 	}
 	return res.status(404).json({message: "not found"}); 
 })
-//post image
-router.post("/pictures",function(req,res){
-	if(!req.body) {
-        return res.status(400).json({ message:"Bad request"});
-    }
-    let tempicture = { 
-        id:id,
-        owner:req.session.userid,
-        url:req.body.url,
-		title:req.body.title,
-        description:req.body.description,
-		tags:request.body.tags,
-        date:req.body.date
-    }
-	let picture ={
-		owner: {
-			firstname: req.body.owner.firstname,
-			lastname: req.body.owner.lastname,
-			id: req.session.userid,
-			urlsafe: req.body.owner.urlsafe,
-			profilePictureUrl: req.body.owner.profilePictureUrl
-		},
-		url: req.body.url,
-		id: id,
-		alt: req.body.alt,
-		title: req.body.title,
-		date: req.body.date,
-		comments: req.body.comments,
-		bookmarked: false
-	}
-    id++;
-    database.push(picture);
-    return res.status(200).json(picture);
-})
+router.post('/pictures', function(req, res) {
+	//console.log(req);
+	//console.log(req.files.file);
+	cloudinary.uploader.upload(req.files.file.tempFilePath, 
+		function(error, result) {
+			//console.log(result, error);
+			let picture ={				
+				owner: {
+					firstname: "Joe",//req.body.owner.firstname,
+					lastname: "Doe",//req.body.owner.lastname,
+					id: 222,//req.session.userid,
+					urlsafe: "",
+					//profilePictureUrl: req.body.owner.profilePictureUrl
+				},
+				url: result.secure_url,
+				id: id,
+				//alt: req.body.alt,
+				title: req.body.title,
+				description: req.body.description,
+				date: Date.now(),
+				bookmarked: false
+			}
+			//console.log(req);
+			id++;
+			database.push(picture);
+			return res.status(200).json(picture);
+	});	
+});
 //post comment
 router.post("/comment/:photoid", function(req,res){
-	let pictureid = parseInt(req.params.photoid, 10);
+	/*let pictureid = parseInt(req.params.photoid, 10);
 	comment = {
 		user: req.body.user,
 		id: req.body.id,
@@ -259,7 +279,7 @@ router.post("/comment/:photoid", function(req,res){
 				database[i].comments.push(comment);
 				return res.status(200).json({message:"successful"});
 		}
-	}
+	}*/
 	return res.status(201).json({message:"successful"});
 })
 //add bookmark
@@ -280,27 +300,35 @@ router.put("/settings/:userid",function(req,res){
 	if(!req.body.email) {
         return res.status(400).json({message:"Bad request"});
     }
-	let settings = {
-		userid: userid,
-		firstname: req.body.firstname,
-		lastname: req.body.lastname,
-		email: req.body.email,
-		password: req.body.password,
-		birthday: req.body.birthday,
-		user_icon: req.body.user_icon
-	}
-	for(i=0; i<settingstable.length; i++){
-		if(tempId === settingstable[i].userid){
-			if(req.session.user !== settingstable[i].user){
-                return res.status(409).json({ message: "You are not authorized to edit these settings"});
+	// parse a file upload
+	//const form = Formidable();
+	//form.parse(req, (err, fields, files) => {
+		// Find Cloudinary documentation using the link below
+		// https://cloudinary.com/documentation/upload_images
+		cloudinary.uploader.upload(req.image, result => {
+			console.log(result);
+			let settings = {
+				userid: tempId,
+				firstname: req.body.firstname,
+				lastname: req.body.lastname,
+				email: req.body.email,
+				password: req.body.password,
+				birthday: req.body.birthday,
+				user_icon: result.url
 			}
-			settingstable.splice(i,1, settings);
-			return res.status(200).json({message: "Success!"});
-		}
-	}	
-	return res.status(404).json({message: "not found"}); 
-	
-})
+			for(i=0; i<settingstable.length; i++){
+				if(tempId === settingstable[i].userid){
+					if(req.session.user !== settingstable[i].user){
+						return res.status(409).json({ message: "You are not authorized to edit these settings"});
+					}
+					settingstable.splice(i,1, settings);
+					return res.status(200).json({message: "Success!"});
+				}
+			}	
+			return res.status(404).json({message: "not found"}); 
+		})	
+	})
+//})
 
 //delete user
 /* router.delete("/user/:id",function(req,res)){
@@ -315,6 +343,7 @@ router.delete("/pictures/:id",function(req,res){
             if(req.session.user !== database[i].user){
                 return res.status(409).json({ message: "You are not authorized to remove this item"});
             }
+			//cloudinary.uploader.destroy(database[i].public_id, function(result) { console.log(result) });
             database.splice(i,1);
             return res.status(200).json({message: "Success!"});
         }
@@ -322,8 +351,9 @@ router.delete("/pictures/:id",function(req,res){
     return res.status(404).json({message: "not found"}); 
 })
 //delete comment
-router.delete("/comments/:id",function(req,res){
-
+router.delete("/comments/:id",function(req,res){	
+	return res.status(200).json({message: "Success!"});
+		
 })
 //unfollow user
 router.delete("/api/follow/:id",function(req,res){
@@ -333,7 +363,6 @@ router.delete("/api/follow/:id",function(req,res){
 router.delete("/api/bookmark/:id",function(req,res){
 
 })
-
 
 
 module.exports = router;
