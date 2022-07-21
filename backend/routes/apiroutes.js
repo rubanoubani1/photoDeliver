@@ -1,4 +1,4 @@
-//const { request, text } = require("express");
+
 const express = require("express");
 const pictureModel = require("../models/picture");
 const { commentModel } = require("../models/comment");
@@ -7,7 +7,30 @@ const notificationModel = require("../models/notification");
 const userModel = require("../models/user");
 const crypto = require('crypto');
 
-router = express.Router();
+require("dotenv").config();
+//library for form data parsing
+//const multer = require("multer");
+//const upload = multer();
+const fileUpload = require("express-fileupload");
+
+//const fileUpload = multer(); //can be removed
+//const FileReader = require("filereader");  //can be removed
+//const streamifier = require("streamifier"); //can be removed
+//const formidable = require("formidable");
+//cloudinary api for uploading images
+const cloudinary = require("cloudinary").v2;
+// cloudinary configuration
+cloudinary.config({
+    cloud_name: process.env.YOUR_CLOUD_NAME,
+    api_key: process.env.YOUR_API_KEY,
+    api_secret: process.env.YOUR_API_SECRET
+});
+
+
+var router = express.Router();
+
+router.use(fileUpload({ useTempFiles : true }));
+
 
 
 const createToken = (bytes) => {
@@ -176,46 +199,58 @@ router.get("/pictures/:id",function(req,res){
 	
 })
 
+
 //POST
 
 //post image
 router.post("/pictures",function(req,res){
-	if(!req.body | !req.body.url ) {
+	if( !req.body ) {
         return res.status(400).json({ message:"Bad request"});
     }
+	console.log("Uploading to cloudinary");
+	cloudinary.uploader.upload(req.files.file.tempFilePath,
+		function (error, result) {	
+			if(error){
+				console.log("Failed to save image to cloudinary: ", error);
+				return res.status(500).json({ message: "internal server error" });
+			}
+			console.log("Upload successful.");
+			let picture = {
+				owner: req.session.userid,
+				url: result.secure_url,
+				urlsafe: createToken(32), //this might have collisions if there are millions of users
+				alt: req.body.alt,
+				title: req.body.title,
+				description: req.body.description,
+				bookmarkedBy: [],
+				comments: [],
+			}
+			if (!req.body.description) {
+				req.body.description = "";
+			}
+			let tags = req.body.description.split(/(\s+)/).filter((token) => {
+				return token.startsWith("#")
+			}).map((tag) => {
+				return { tag: tag }
+			})
+			tagModel.insertMany(tags, { ordered: false }, function (err, docs) {
+				if (err) {
+					console.log("error inserting tags: " + err);
+				}
+			});
+			picture.tags = tags;
+			let pictureM = new pictureModel(picture);
+			pictureM.save(function (err) {
+				if (err) {
+					console.log("failed to save picture, err: " + err);
+					return res.status(500).json({ message: "internal server error" });
+				}
+				return res.status(201).json(pictureM);
+			});
+
+		});	
 	
-	let picture = {
-		owner: req.session.userid,
-		url: req.body.url,
-		urlsafe: createToken(32), //this might have collisions if there are millions of users
-		alt: req.body.alt,
-		title: req.body.title,
-		description: req.body.description,
-		bookmarkedBy: [],
-		comments: [],
-	}
-	if (!req.body.description){
-		req.body.description = "";
-	}
-	let tags = req.body.description.split(/(\s+)/).filter((token)=>{
-		return token.startsWith("#")
-	}).map((tag)=>{
-		return {tag:tag}
-	})
-	tagModel.insertMany(tags, {ordered:false}, function(err, docs){
-		if(err){
-			console.log("error inserting tags: "+err);
-		}
-	});
-	picture.tags = tags;
-	let pictureM = new pictureModel(picture);
-	pictureM.save(function (err) {
-		if (err) {
-			console.log("failed to save picture, err: " + err);
-			return res.status(500).json({ message: "internal server error" });
-		}
-		return res.status(201).json({ message: "success" });
-	})
+	
 	
 })
 
@@ -237,6 +272,7 @@ router.post("/pictures/:photoid/comments", function(req,res){
 			console.log("failed to update picture comments, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
+
 		if(results.modifiedCount>0){
 			comment.save(function (err) {
 				/*if (err) { //this could cause res.status to be set twice 
@@ -248,6 +284,7 @@ router.post("/pictures/:photoid/comments", function(req,res){
 		}
 		return res.status(404).json({message:"Not found"});
 	});
+
 })
 
 //add bookmark
@@ -327,6 +364,7 @@ router.put("/users/:id/follow", function (req, res) {
 	
 })
 
+
 //edit user settings
 router.put("/settings",function(req,res){
 	if (!req.body ) {
@@ -343,14 +381,32 @@ router.put("/settings",function(req,res){
 		birthday: req.body.birthday,
 		userIconUrl: req.body.userIconUrl
 	};
-	userModel.updateOne(query,{"$set":settings},function(err){
-		if (err) {
-			console.log("failed to follow user, err: " + err);
-			return res.status(500).json({message:"Internal server error"})
-		}
-		return res.status(200).json({ message: "Success" });
-	})
-})
+	if(req.image){
+		// Find Cloudinary documentation using the link below
+		// https://cloudinary.com/documentation/upload_images
+		cloudinary.uploader.upload(req.image, result => {
+			console.log("user icon post result:", result);
+			settings.userIconUrl = result.url;
+			userModel.updateOne(query, { "$set": {...settings} }, function (err) {
+				if (err) {
+					console.log("failed to follow user, err: " + err);
+					return res.status(500).json({ message: "Internal server error" });
+				}
+				return res.status(200).json({ message: "Success" });
+			});
+		})	
+	} else {
+		userModel.updateOne(query, { "$set": settings }, function (err) {
+			if (err) {
+				console.log("failed to follow user, err: " + err);
+				return res.status(500).json({ message: "Internal server error" });
+			}
+			return res.status(200).json({ message: "Success" });
+		});
+	}
+	
+});
+
 
 //delete user
 /* router.delete("/user/:id",function(req,res)){
@@ -367,11 +423,12 @@ router.delete("/pictures/:id",function(req,res){
 		if (picture) {
 			let commentQuery = { "_id": { "$in": picture.comments.map((comment) => comment._id) } };
 			commentModel.deleteMany(commentQuery);
+			//TODO: cloudinary.uploader.destroy(database[i].public_id, function(result) { console.log(result) });
 			return res.status(200).json({ message: "success" });
 		}
-		return res.status(404).json({ message: "Not found" })
+		return res.status(404).json({ message: "Not found" });
 	});
-})
+});
 
 //delete comment
 router.delete("/pictures/:pictureid/comments/:id",function(req,res){
@@ -409,9 +466,8 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 					return res.status(200).json({ message: "success" });
 				})
 		});
-	})
-	
-})
+	});
+});
 
 //unfollow user
 router.put("/users/:id/unfollow",function(req,res){
@@ -486,7 +542,6 @@ router.put("/pictures/:id/unmark",function(req,res){
 		
 	});
 })
-
 
 
 module.exports = router;
