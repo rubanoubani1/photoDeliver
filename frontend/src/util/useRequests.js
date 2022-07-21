@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 
 export const useRequests = () => {
+
+    const [page, setPage] = useState({
+        path: "",
+        user: ""
+    });
+
     const [state, setState] = useState({
         isLogged:true,
         list: [],
@@ -28,6 +34,7 @@ export const useRequests = () => {
     // storage
 
     useEffect(() => {
+        console.log("init useeffect")
         let savedState = sessionStorage.getItem("state")
         if (savedState) {
             let state = {
@@ -40,9 +47,9 @@ export const useRequests = () => {
                 ...JSON.parse(savedState)
             }
             setState(state);
-            if (state.isLogged) {
+            /*if (state.isLogged) {
                 getPictures(state.token)
-            }
+            }*/
         }
     }, [])
 
@@ -96,7 +103,7 @@ export const useRequests = () => {
             message: "",
             loading: false,
             token: "",
-            user:{id:-1}
+            user: { id: -1 }
         }
         saveToStorage(emptyState);
         setState(emptyState);
@@ -108,6 +115,7 @@ export const useRequests = () => {
             setLoading(true);
             let response = await fetch(urlRequest.url, urlRequest.request);
             setLoading(false);
+            console.log("useeffect action: "+urlRequest.action);
             if (response.ok) {
                 //handle successful requests
                 switch (urlRequest.action) {
@@ -273,12 +281,26 @@ export const useRequests = () => {
             action: "logout"
         });
     }
-    const getPictures = (paramtoken) => {
-        let url = "/api/pictures"
+    const getPictures = (paramtoken, pagepath, userId) => {
+        console.log(page);
+        let url = "/api/pictures";
+        let user_id = state.user.id;
+        if (page.user) user_id = page.user;
+        if (userId) user_id = userId;
+        let path = page.path;
+        if (pagepath) path = pagepath;
+        if (path === "saved") url = "/api/user/bookmarks/" + user_id;
+        if (path === "posts") url = "/api/user/pictures/" + user_id;
         let token = state.token;
  
         if (paramtoken) {
             token = paramtoken
+        }
+        if(pagepath || user_id){
+            setPage({
+                path: path,
+                user: user_id
+            });
         }
         
         setUrlRequest({
@@ -459,6 +481,7 @@ export const useRequests = () => {
             action: "unfollow"
         });
     }
+
 
 
     return [state, {

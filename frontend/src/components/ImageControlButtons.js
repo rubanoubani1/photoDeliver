@@ -1,23 +1,29 @@
+import { useDispatch, useSelector } from "react-redux";
+import { removeImage, addBookmark, removeBookmark } from "../actions/pictureActions";
+
 const ImageControlButtons = (props) => {
 
+    const dispatch = useDispatch();
+    const state = useSelector(state=>state.login);
+
     let buttons = []
-    if (props.user_id === props.owner_id) {
+    if (state.user.id === props.owner_id) {
         buttons.push(<button 
             key="delete" 
             className="btn btn-primary"
-            onClick={props.deletePicture}>Delete picture</button>)
+            onClick={()=>dispatch(removeImage(state.token, props.image_id))}>Delete picture</button>)
     }
-    else if(props.user_id > 0) {
+    else if(state.isLogged) {
         if (!props.bookmarked){
             buttons.push(<button 
                 key="save" 
                 className="btn btn-primary"
-                onClick={props.addBookmark}>Save picture</button>);
+                onClick={() => dispatch(addBookmark(state.token, props.image_id, state.user.id)) }>Save picture</button>);
         } else {
             buttons.push(<button 
                 key="unsave" 
                 className="btn btn-primary"
-                onClick={props.removeBookmark}>Unsave picture</button>);
+                onClick={() => dispatch(removeBookmark(state.token, props.image_id, state.user.id))}>Unsave picture</button>);
         }
         
     }

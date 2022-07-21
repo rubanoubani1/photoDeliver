@@ -1,5 +1,5 @@
 import './App.css';
-import {Routes,Route, Navigate} from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './components/Home';
 
 import LogIn from './components/LogIn';
@@ -9,51 +9,53 @@ import Settings from './components/Settings';
 import MyPosts from './components/MyPosts';
 import Logout from './components/Logout';
 import AddPicture from './components/AddPicture';
-
-//import {useState} from 'react';
-import { useRequests } from './util/useRequests';
+import { useSelector } from "react-redux";
 
 
 function App() {
 
-  const [state, funcs] = useRequests();
+	const state = useSelector(state => ({
+		loading:state.login.loading,
+		isLogged:state.login.isLogged,
+		loginError: state.login.error,
+		imageError: state.images.error
+	}))
 
-  let messageArea = <h4> </h4>
-	if(state.loading) {
-		messageArea = <h4>Loading...</h4>
+	let messageArea = <></>
+	if (state.loading) {
+		messageArea = <h4>Loading..<hr />.</h4>
 	}
-	if(state.error) {
-		messageArea =<h4>{state.error}</h4>
+	if (state.loginError) {
+		messageArea = <h4>{state.loginError}<hr /></h4>
+	} else if (state.imageError) {
+		messageArea = <h4>{state.imageError}<hr /></h4>
 	}
 
-	
+
 	let tempRender = <Routes>
-		<Route exact path="/" element={
-			<LogIn   funcs={funcs}/>
-			}/>
-			<Route path="*" element ={<Navigate to="/"/>}/>
-		</Routes>
+		<Route exact path="/" element={<LogIn />} />
+		<Route path="*" element={<Navigate to="/" />} />
+	</Routes>
 
-		if(state.isLogged) {
+	if (state.isLogged) {
 		tempRender = <Routes>
-		        <Route exact path="/" element={<Home user_id={state.user.id} list={state.list} funcs={funcs}/>} />
-				 <Route path="/saved" element={<SavePage user_id={state.user.id} list={state.list} funcs={funcs}/>} />
-        <Route path="/settings" element={<Settings/>} />
-        <Route path="/add" element={<AddPicture funcs={funcs} />} />
-		<Route path="/posts" element={<MyPosts user_id={state.user.id} list={state.list} funcs={funcs}/>} />
-        <Route path="/Logout" element={<Logout/>} />
+			<Route exact path="/" element={<Home />} />
+			<Route path="/saved" element={<SavePage />} />
+			<Route path="/settings" element={<Settings />} />
+			<Route path="/add" element={<AddPicture />} />
+			<Route path="/posts" element={<MyPosts />} />
+			<Route path="/Logout" element={<Logout />} />
+			<Route path="*" element={<Navigate to="/" />} />
 		</Routes>
-		}
-  return (
+	}
+	return (
 
-    <div className="App">
-	
+		<div className="App">
+
 			{messageArea}
-			<hr/>
 			{tempRender}
-	
-    </div>
-  );
+		</div>
+	);
 }
 
 export default App;

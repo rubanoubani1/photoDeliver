@@ -13,4 +13,7 @@ const schema = mongoose.Schema({
     bookmarked: [String] //picture ids for filtering by saved pictures
 });
 
-module.exports = mongoose.model("User", schema);
+module.exports = {
+    userSchema: schema,
+    userModel: mongoose.model("User", schema)
+}

@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const { userSchema } = require('./user')
 
 const schema = mongoose.Schema({
-    owner: String,  //user id
+    owner: userSchema,  //user id
     picture: String, //picture id
     text: String
 }, {

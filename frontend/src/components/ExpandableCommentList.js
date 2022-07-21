@@ -1,6 +1,7 @@
 import Comment from "./Comment";
 import { useState } from "react";
 import CommentForm from "./CommentForm";
+import { useSelector } from 'react-redux';
 
 const ExpandableCommentList = (props) => {
     // can be closed, showing only one comment and number of comments and a button to view all comments if more than one
@@ -10,6 +11,9 @@ const ExpandableCommentList = (props) => {
     // if user has logged in, should probably have a form for sending a comment
 
     // the view all comments can be styled to look like a link but it propbably should be a button
+
+    
+    const isLogged = useSelector(state => state.login.isLogged);
 
     const [state, setState] = useState({
         displayedCommentsCount: 1
@@ -24,11 +28,10 @@ const ExpandableCommentList = (props) => {
     let commentComponents = props.comments.map((item)=>{
         return <Comment 
             key={item.id} 
-            user={item.user} 
+            id={item.id}
+            image_id={props.image_id}
             comment={item} 
-            user_id={props.user_id} 
-            owner_id={props.owner_id}
-            deleteComment={() => props.deleteComment(item.id)}/>
+            owner_id={props.owner_id}/>
     })
 
     let viewAllButton = <button onClick={() => setDisplayCount(commentComponents.length)} className="btn btn-primary">View all comments...</button>
@@ -39,8 +42,10 @@ const ExpandableCommentList = (props) => {
     }
 
     let commentForm = [];
-    if(props.user_id >0){
-        commentForm.push(<CommentForm key="commentForm" addComment={props.addComment} image_id={props.image_id} />);
+    if (isLogged){
+        commentForm.push(<CommentForm 
+            key="commentForm" 
+            image_id={props.image_id} />);
     }
 
 

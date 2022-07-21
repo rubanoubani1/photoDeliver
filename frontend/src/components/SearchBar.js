@@ -1,11 +1,26 @@
+
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setFilter } from '../actions/pictureActions';
+
 const SearchBar = (props) => {
 
+    const dispatch = useDispatch();
+
+    const[state, setState] = useState({
+        query: "",
+        datefrom: new Date(0).toJSON().slice(0, 10),
+        dateto: new Date(Date.now() + (1000*60*60*24)).toJSON().slice(0, 10)
+    })
+
     const onChange = (event) => {
-        props.setFilter({
-            query:props.query,
-            datefrom:props.datefrom,
-            dateto:props.dateto,
-            [event.target.name]:event.target.value
+        setState(state => {
+            let tmpState = {
+                ...state,
+                [event.target.name]: event.target.value
+            }
+            dispatch(setFilter(tmpState));
+            return tmpState;
         });
     }
     //<label htmlFor="datefrom" className="form-label">From: </label>
@@ -21,7 +36,7 @@ const SearchBar = (props) => {
                     className="form-control"
                     placeholder="From"
                     onChange={onChange}
-                    value={props.from}
+                    value={state.datefrom}
                 />
                 <input
                     type="date"
@@ -30,7 +45,7 @@ const SearchBar = (props) => {
                     className="form-control"
                     placeholder="To"
                     onChange={onChange}
-                    value={props.to}
+                    value={state.dateto}
                 />
             </div>
             
@@ -41,7 +56,7 @@ const SearchBar = (props) => {
                 className="form-control"
                 placeholder="Search by tags"
                 onChange={onChange}
-                value={props.query}
+                value={state.query}
             />
         </form>
     )

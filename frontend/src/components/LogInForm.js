@@ -1,6 +1,11 @@
-import {useState} from 'react';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { login, loginFailed } from '../actions/loginActions';
 
 const LogInForm = (props)=>{
+
+	const dispatch = useDispatch();
+
 	const [state, setState] = useState({
 		email:"",
 		password:""
@@ -19,12 +24,11 @@ const LogInForm = (props)=>{
 
 	const onSubmit =  (event) => {
 		event.preventDefault();
+
 		let data = {
 			...state
 		}
-
-		props.getLogin(data);
-
+		dispatch(login(data));
 
 	}
 

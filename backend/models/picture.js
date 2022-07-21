@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const { commentSchema } = require('./comment')
+const { userSchema } = require('./user')
 
 const schema = mongoose.Schema({
-    owner: { index: true, type: String },
+    owner: userSchema, //{ index: true, type: String },
     urlsafe: { unique:true, type:String },
     url: String,
     title: String,

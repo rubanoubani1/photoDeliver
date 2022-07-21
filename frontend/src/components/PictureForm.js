@@ -1,7 +1,12 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from "react-redux";
 import ImageUploader from './ImageUploader';
+import { addImage } from '../actions/pictureActions';
 
 const PictureForm = (props) => {
+
+    const dispatch = useDispatch();
+    const token = useSelector(state=>state.login.token);
 
     const [state, setState] = useState({
         title:"",
@@ -13,12 +18,12 @@ const PictureForm = (props) => {
 
     const onSubmit = (event) => {
         event.preventDefault();
-        props.funcs.addPicture(state);
+        console.log(state)
+        dispatch(addImage(token, state));
     }
 
     const onChange = (event) => {
         setState((state) => {
-            console.log(state);
             return {
                 ...state,
                 [event.target.name]: event.target.value

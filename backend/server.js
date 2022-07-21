@@ -3,8 +3,8 @@ const apiroutes = require("./routes/apiroutes");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const mongoose = require('mongoose');
-const userModel = require('./models/loginuser');
-const userdataModel = require('./models/user');
+const loginUserModel = require('./models/loginuser');
+const { userModel } = require('./models/user');
 const sessionModel = require('./models/session');
 
 const app = express();
@@ -95,7 +95,7 @@ app.post("/register", function(req,res) {
 			return res.status(500).json({ message: "internal server error" });
 		}
 		
-		let userdata = new userdataModel({
+		let userdata = new userModel({
 			user: req.body.username,
 			urlsafe: req.body.username,
 			firstname: "",
@@ -114,7 +114,7 @@ app.post("/register", function(req,res) {
 				}
 				return res.status(500).json({ message: "internal server error" });
 			}
-			let user = new userModel({
+			let user = new loginUserModel({
 				userid: userdata._id,
 				username: req.body.username,
 				hash: hash,
@@ -150,7 +150,7 @@ app.post("/login", function(req,res) {
 	if(req.body.username.length<4|| req.body.password.length<8) {
 		return res.status(400).json({message:"Please provide proper credentails"});
 	}
-	userModel.findOne({ 'username': req.body.username }, function (err, user) {
+	loginUserModel.findOne({ 'username': req.body.username }, function (err, user) {
 		if (err) {
 			console.log("error finding user, reason: " + err);
 			return res.status(500).json({ message: "Internal server error" });
@@ -203,7 +203,7 @@ app.post("/logout",function(req,res) {
 })
 
 
-app.use("/api",isUserLogged,apiroutes);
+app.use("/api", isUserLogged, apiroutes);
 app.listen(port);
 
 console.log("Runnning on port ", port);

@@ -4,12 +4,12 @@ const Footer = () => {
 
     return (
         <footer style={{
-            backgroundColor: "#DBBAA0",
+            //backgroundColor: "#DBBAA0",
             display: "flex",
-            justifyContent: "center",
+            right: 0,
             position: "fixed",
             bottom: 0,
-            width: "100%"
+            //width: "100%"
         }}>
             <Link to="add" style={{ margin: "10px" }} className="btn btn-primary">Add new photo</Link>
         </footer>

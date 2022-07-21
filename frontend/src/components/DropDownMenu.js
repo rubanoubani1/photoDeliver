@@ -1,7 +1,12 @@
 import './DropDownMenu.css';
 import {Link} from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../actions/loginActions';
 
 const DropDownMenu = () => {
+
+    const dispatch = useDispatch();
+    const token = useSelector(state => state.login.token);
 
     return(
     <div className="pd-dropdown">
@@ -12,7 +17,7 @@ const DropDownMenu = () => {
             <Link to="/posts">My posts</Link>
             <Link to="/saved">Saved pictures</Link>
             <hr/>
-            <Link to="">Logout</Link>
+            <Link to="" onClick={()=>dispatch(logout(token))}>Logout</Link>
         </div>
     </div>
     )

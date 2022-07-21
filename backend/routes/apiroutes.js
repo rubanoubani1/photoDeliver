@@ -4,7 +4,7 @@ const pictureModel = require("../models/picture");
 const { commentModel } = require("../models/comment");
 const tagModel = require("../models/tag");
 const notificationModel = require("../models/notification");
-const userModel = require("../models/user");
+const { userModel } = require("../models/user");
 const crypto = require('crypto');
 
 require("dotenv").config();
@@ -40,12 +40,13 @@ const createToken = (bytes) => {
 
 
 //let id = 100;
-
+/*
 //returns mapping from user ids to user data
 const getUserData = (userids, callback) => {
 	let query = {"_id":{"$in":userids}};
 	let projection = {
 		_id: 1,
+		id:1,
 		urlsafe: 1,
 		firstname: 1,
 		lastname: 1,
@@ -57,7 +58,7 @@ const getUserData = (userids, callback) => {
 			console.log("error querying items, err: " + err);
 			return callback({ error: "internal server error" },undefined);
 		} 
-		let userDataDict = userids
+		let userDataDict = {}
 		users.forEach(user => {
 			userDataDict[user._id] = user;
 		});
@@ -80,18 +81,26 @@ async function addUserData(pictures, callback){
 		pictures.forEach(picture => {
 			picture.owner = userData[picture.owner];
 			picture.comments.forEach(comment => {
-				comment.owner = userData[comment.owner];
+				comment.user = userData[comment.owner];
+				console.log(typeof comment.user);
 			})
 		});
 		callback(undefined, pictures);
 	});
 }
+*/
 
 const pictureProjection = {
-	//"_id": 0,
 	"bookmarkedBy": 0,
-	//"comments._id": 0,
 	"comments.picture": 0,
+	"owner.following" : 0,
+	"owner.followers" : 0,
+	"owner.bookmarked": 0,
+	"owner.user": 0,
+	"comments.owner.following": 0,
+	"comments.owner.followers": 0,
+	"comments.owner.bookmarked": 0,
+	"comments.owner.user": 0,
 }
 
 //REST API
@@ -104,38 +113,41 @@ router.get("/pictures",function(req,res) {
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
+		return res.status(200).json(pictures);
+		/*
 		addUserData(pictures, (err, pics) => {
 			if (err){
 				console.log("error querying items, err: "+err);
 				return res.status(500).json({message:"internal server error"});
 			} 
 			return res.status(200).json(pics);
-		});
+		});*/
 	});
 })
 
 //get own images / get images of user
-router.get("/user/:user/pictures",function(req,res){
-	let query = { "owner": req.session.userid };
+router.get("/user/:userid/pictures",function(req,res){
+	let query = { "owner": req.params.userid };
 	pictureModel.find(query, pictureProjection, function (err, pictures) {
 		if (err) {
 			console.log("error querying pictures, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
-		}
-		addUserData(pictures, (err, pics) => {
+		} 
+		return res.status(200).json(pictures);
+		/*addUserData(pictures, (err, pics) => {
 			if (err){
 				console.log("error querying items, err: "+err);
 				return res.status(500).json({message:"internal server error"});
 			} 
 			return res.status(200).json(pics);
-		});
+		});*/
 	});
 })
 
 //get images that user has bookmarked
-router.get("/user/:user/bookmarks",function(req,res){
+router.get("/user/:userid/bookmarks",function(req,res){
 	let userquery = { 
-		"_id": req.session.userid, 
+		"_id": req.params.userid, 
 	};
 	userModel.findOne(userquery, function (err, user) {
 		if (err) {
@@ -149,17 +161,18 @@ router.get("/user/:user/bookmarks",function(req,res){
 				console.log("error querying pictures, err: " + err);
 				return res.status(500).json({ message: "internal server error" });
 			}
-			addUserData(pictures, (err, pics) => {
+			return res.status(200).json(pictures);
+			/*addUserData(pictures, (err, pics) => {
 				if (err){
 					console.log("error querying items, err: "+err);
 					return res.status(500).json({message:"internal server error"});
 				} 
 				return res.status(200).json(pics);
-			});
+			});*/
 		});
 	});
 })
-
+/*
 //get comments of an image
 router.get("/pictures/:id/comments",function(req,res){
 	let query = { "_id": req.params.id };
@@ -172,9 +185,9 @@ router.get("/pictures/:id/comments",function(req,res){
 			return res.status(404).json({ message: "Not found." });
 		}
 		return res.status(200).json(picture.comments);
-	})
+	});
 
-})
+});*/
 
 //get an image
 router.get("/pictures/:id",function(req,res){
@@ -188,13 +201,14 @@ router.get("/pictures/:id",function(req,res){
 		if (!picture) {
 			return res.status(404).json({ message: "Not found." });
 		}
-		addUserData([picture], (err, pics) => {
+		return res.status(200).json(picture);
+		/*addUserData([picture], (err, pics) => {
 			if (err) {
 				console.log("error querying items, err: " + err);
 				return res.status(500).json({ message: "internal server error" });
 			}
 			return res.status(200).json(pics[0]);
-		});
+		});*/
 	});
 	
 })
@@ -207,48 +221,60 @@ router.post("/pictures",function(req,res){
 	if( !req.body ) {
         return res.status(400).json({ message:"Bad request"});
     }
-	console.log("Uploading to cloudinary");
-	cloudinary.uploader.upload(req.files.file.tempFilePath,
-		function (error, result) {	
-			if(error){
-				console.log("Failed to save image to cloudinary: ", error);
-				return res.status(500).json({ message: "internal server error" });
-			}
-			console.log("Upload successful.");
-			let picture = {
-				owner: req.session.userid,
-				url: result.secure_url,
-				urlsafe: createToken(32), //this might have collisions if there are millions of users
-				alt: req.body.alt,
-				title: req.body.title,
-				description: req.body.description,
-				bookmarkedBy: [],
-				comments: [],
-			}
-			if (!req.body.description) {
-				req.body.description = "";
-			}
-			let tags = req.body.description.split(/(\s+)/).filter((token) => {
-				return token.startsWith("#")
-			}).map((tag) => {
-				return { tag: tag }
-			})
-			tagModel.insertMany(tags, { ordered: false }, function (err, docs) {
-				if (err) {
-					console.log("error inserting tags: " + err);
-				}
-			});
-			picture.tags = tags;
-			let pictureM = new pictureModel(picture);
-			pictureM.save(function (err) {
-				if (err) {
-					console.log("failed to save picture, err: " + err);
+	if (!req.files || !req.files.file || !req.files.file.tempFilePath) {
+		console.log("no picture in request");
+		console.log(req.files);
+		return res.status(400).json({ message: "No picture in request" });
+	}
+	userModel.findById(req.session.userid, (err, user) => {
+		if (err) {
+			console.log("error querying user, err: " + err);
+			return res.status(500).json({ message: "internal server error" });
+		}
+		console.log("Uploading to cloudinary");
+		cloudinary.uploader.upload(req.files.file.tempFilePath,
+			function (error, result) {
+				if (error) {
+					console.log("Failed to save image to cloudinary: ", error);
 					return res.status(500).json({ message: "internal server error" });
 				}
-				return res.status(201).json(pictureM);
-			});
+				console.log("Upload successful.");
+				let picture = {
+					owner: user,
+					url: result.secure_url,
+					urlsafe: createToken(32), //this might have collisions if there are millions of users
+					alt: req.body.alt,
+					title: req.body.title,
+					description: req.body.description,
+					bookmarkedBy: [],
+					comments: [],
+				}
+				if (!req.body.description) {
+					req.body.description = "";
+				}
+				let tags = req.body.description.split(/(\s+)/).filter((token) => {
+					return token.startsWith("#")
+				}).map((tag) => {
+					return { tag: tag }
+				})
+				tagModel.insertMany(tags, { ordered: false }, function (err, docs) {
+					if (err) {
+						console.log("error inserting tags: " + err);
+					}
+				});
+				picture.tags = tags;
+				let pictureM = new pictureModel(picture);
+				pictureM.save(function (err) {
+					if (err) {
+						console.log("failed to save picture, err: " + err);
+						return res.status(500).json({ message: "internal server error" });
+					}
+					return res.status(201).json(pictureM);
+				});
 
-		});	
+			});	
+	});
+	
 	
 	
 	
@@ -256,34 +282,42 @@ router.post("/pictures",function(req,res){
 
 //post comment
 router.post("/pictures/:photoid/comments", function(req,res){
-	if (!req.body || !req.body.text) {
+	if (!req.body || !req.body.comment) {
 		return res.status(400).json({ message: "Bad request" });
 	}
-	let comment = new commentModel({
-		owner: req.session.userid,
-		picture: req.params.photoid,
-		text: req.body.text,
-	});
-	
-	let query = { "_id": req.params.photoid };
-	let update = { "$push": { comments: comment } }
-	pictureModel.updateOne(query, update, function (err, results) {
+	userModel.findById(req.session.userid, (err, user) => {
 		if (err) {
-			console.log("failed to update picture comments, err: " + err);
+			console.log("error querying user, err: " + err);
 			return res.status(500).json({ message: "internal server error" });
 		}
+		let comment = new commentModel({
+			owner: user,
+			picture: req.params.photoid,
+			text: req.body.comment,
+		});
 
-		if(results.modifiedCount>0){
-			comment.save(function (err) {
-				/*if (err) { //this could cause res.status to be set twice 
-					console.log("failed to save comment, err: " + err);
-					return res.status(500).json({ message: "internal server error" });
-				}*/
-			})
-			return res.status(201).json({ message: "success" });
-		}
-		return res.status(404).json({message:"Not found"});
+		let query = { "_id": req.params.photoid };
+		let update = { "$push": { comments: comment } }
+		pictureModel.updateOne(query, update, function (err, results) {
+			if (err) {
+				console.log("failed to update picture comments, err: " + err);
+				return res.status(500).json({ message: "internal server error" });
+			}
+
+			if (results.modifiedCount > 0) {
+				comment.save(function (err) {
+					/*if (err) { //this could cause res.status to be set twice 
+						console.log("failed to save comment, err: " + err);
+						return res.status(500).json({ message: "internal server error" });
+					}*/
+				})
+				return res.status(201).json({ message: "success" });
+			}
+			return res.status(404).json({ message: "Not found" });
+		});
 	});
+
+	
 
 })
 
@@ -545,3 +579,63 @@ router.put("/pictures/:id/unmark",function(req,res){
 
 
 module.exports = router;
+
+/**
+ * 
+ * //get images
+router.get("/pictures",function(req,res) {
+	
+
+//get own images / get images of user
+router.get("/user/:user/pictures",function(req,res){
+	
+
+//get images that user has bookmarked
+router.get("/user/:user/bookmarks",function(req,res){
+	
+
+//get comments of an image
+router.get("/pictures/:id/comments",function(req,res){
+	
+
+//get an image
+router.get("/pictures/:id",function(req,res){
+	
+
+//POST
+
+//post image
+router.post("/pictures",function(req,res){
+	
+
+//post comment
+router.post("/pictures/:photoid/comments", function(req,res){
+
+
+//add bookmark
+router.put("/pictures/:id/mark", function (req, res) {
+
+//follow user
+router.put("/users/:id/follow", function (req, res) {
+   
+
+//edit user settings
+router.put("/settings", function (req, res) {
+   
+
+//delete own picture
+router.delete("/pictures/:id", function (req, res) {
+   
+//delete comment
+router.delete("/pictures/:pictureid/comments/:id", function (req, res) {
+   
+
+//unfollow user
+router.put("/users/:id/unfollow", function (req, res) {
+   
+
+//remove bookmark
+router.put("/pictures/:id/unmark", function (req, res) {
+  
+ * 
+ */
