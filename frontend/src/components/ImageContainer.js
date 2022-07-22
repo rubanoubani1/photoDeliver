@@ -5,7 +5,10 @@ import ImageTextContent from "./ImageTextContent";
 const ImageContainer = (props) => {
 
     return (
-        <div style={{ width: "500px", margin: "20px" }}>
+        <div 
+            className="primary image-card"
+            style={{ width: "420px", margin: "20px" }}
+        >
             <ImageHeader 
                 user={props.picture.owner} 
                 date={props.picture.date} 

@@ -73,8 +73,19 @@ const SettingsForm = () => {
                 className="form-control"
                 onChange={onChange}
                 ></input>
-            <img src={require("../user_icon.png")} id="user_picture" alt="user_icon" style={{width:"64px",height:"64px"}}/>
-            <input type="file" id="user_icon" name="user_icon" onChange={onChange}/>
+            
+            
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <img src={require("../user_icon.png")} id="user_picture" alt="user_icon" style={{ width: "64px", height: "64px" }} />
+                </div>
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="user_icon" name="user_icon" aria-describedby="inputGroupFileAddon01" onChange={onChange} />
+                    <label class="custom-file-label" for="user_icon">Choose file</label>
+                </div>
+                
+                
+            </div>
             <br />
             <input type="submit"
                 className="btn btn-primary"

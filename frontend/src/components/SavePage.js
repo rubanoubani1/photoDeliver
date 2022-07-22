@@ -16,7 +16,7 @@ const SavePage = (props) => {
     }, []);
 
     return(
-    <div>
+    <div className="base">
         <NavigationBar/>
         <h1>Saved photos</h1>
         <FilterableImageList />

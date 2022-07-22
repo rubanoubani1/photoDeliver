@@ -17,7 +17,7 @@ const Home = (props) =>{
     }, []);
 
     return(
-        <div style={{ backgroundColor: "#ffe6d4"}}>
+        <div className="base">
             <NavigationBar />
             <FilterableImageList />
             <Footer/>

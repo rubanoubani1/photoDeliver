@@ -3,8 +3,10 @@ import ImageControlButtons from "./ImageControlButtons";
 
 const ImageTextContent = (props) => {
     return (
-        <div>
-            <div style={{margin:"10px",display:"flex",justifyContent:"space-between"}}>
+        <div className="primary-light primary-blur-inside">
+            <div 
+                style={{margin:"10px",display:"flex",justifyContent:"space-between"}}
+            >
                 <div style={{fontWeight:"bold"}}>{props.title}</div>
                 <ImageControlButtons 
                     image_id={props.image_id} 

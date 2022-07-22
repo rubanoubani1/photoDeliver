@@ -5,17 +5,18 @@ const Settings = () => {
     const changeSettings = () => {
         console.log("changeSettings has been called");
     }
+	//style={{color:"E5E5E5", backgroundColor:"#FFE6D4"}}
     return (
-		<div style={{color:"E5E5E5", backgroundColor:"#FFE6D4"}}>
+		<div className="base">
             <NavigationBar />
-			<div className="row d-flex justify-content-center align-items-center h-100">
+			<div className="row d-flex justify-content-center align-items-center h-100 input-group">
 
 		
 				<div className="col-12 col-md-8 col-lg-6 col-xl-5" >
 					
 						<div className="card p-5 text-center" style={{backgroundColor:"#8F715A",borderRadius: "4rem"}}>
 
-							<h3 style={{color:"#2F57E7"}}>Settings</h3>
+							<h2 className="font-border">Settings</h2>
 							
 							<br />
 							<hr />	
