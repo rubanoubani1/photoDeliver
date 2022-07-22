@@ -7,10 +7,11 @@ const DropDownMenu = () => {
 
     const dispatch = useDispatch();
     const token = useSelector(state => state.login.token);
-
+    const username = useSelector(state => state.login.user.username);
+    
     return(
     <div className="pd-dropdown">
-        <button className="btn btn-primary dropdown-toggle" style= {{backgroundColor:"#3A808A"}}>User@user.com</button>
+        <button className="btn btn-primary dropdown-toggle" style= {{backgroundColor:"#3A808A"}}>{username}</button>
         <div className='pd-dropdown-menu'>
             <Link to="/settings">Settings</Link>
             <Link className="dropdown-item" to="/">Home</Link>
