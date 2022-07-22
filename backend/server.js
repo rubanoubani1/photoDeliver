@@ -182,7 +182,7 @@ app.post("/login", function(req,res) {
 						console.log("failed to save session in login, err: " + err);
 						return res.status(500).json({ message: "internal server error" });
 					}
-					return res.status(200).json({ token: token });
+					return res.status(200).json({ token: token, user:user.userid});
 				});
 			});
 		}
