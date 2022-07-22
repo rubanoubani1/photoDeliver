@@ -6,6 +6,7 @@ const tagModel = require("../models/tag");
 const notificationModel = require("../models/notification");
 const { userModel } = require("../models/user");
 const crypto = require('crypto');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 require("dotenv").config();
 //library for form data parsing
@@ -127,7 +128,10 @@ router.get("/pictures",function(req,res) {
 
 //get own images / get images of user
 router.get("/user/:userid/pictures",function(req,res){
-	let query = { "owner": req.params.userid };
+	let query = { "owner._id": req.params.userid };
+	if (!ObjectId.isValid(req.params.userid)){
+		return res.status(400).json({ message: "invalid id value" });
+	}
 	pictureModel.find(query, pictureProjection, function (err, pictures) {
 		if (err) {
 			console.log("error querying pictures, err: " + err);
@@ -449,7 +453,7 @@ router.put("/settings",function(req,res){
 
 //delete own picture
 router.delete("/pictures/:id",function(req,res){
-	pictureModel.findOneAndDelete({ "_id": req.params.id, "owner": req.session.userid }, function (err, picture) {
+	pictureModel.findOneAndDelete({ "_id": req.params.id, "owner._id": req.session.userid }, function (err, picture) {
 		if (err) {
 			console.log("failed to remove item. err: " + err);
 			return res.status(500).json({ message: "internal server error" });
@@ -475,10 +479,10 @@ router.delete("/pictures/:pictureid/comments/:id",function(req,res){
 			return res.status(404).json({ message: "Not found." });
 		}
 		let query = { "_id": req.params.id };
-		if (picture.owner !== req.session.userid) {
+		if (picture.owner._id !== req.session.userid) {
 			query = { 
 				...query,
-				"owner": req.session.userid
+				"owner._id": req.session.userid
 			}
 		}
 		commentModel.findOneAndDelete(query, function (err, comment) {
