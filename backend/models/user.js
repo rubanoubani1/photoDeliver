@@ -2,8 +2,8 @@
 const mongoose = require("mongoose");
 
 const schema = mongoose.Schema({
-    user: { unique: true, type: String }, //FK to loginuser
-    urlsafe: { unique: true, type: String },
+    user: String, //{ unique: true, type: String }, //FK to loginuser
+    urlsafe: String, //{ unique: true, type: String },
     firstname: String,
     lastname: String,
     userIconUrl: String,
